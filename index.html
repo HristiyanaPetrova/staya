@@ -2,179 +2,43 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Архитект 9.0: Компактен План</title>
+    <title>STEM Архитект: Мисия Електричество</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; margin: 0; padding: 10px; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
+        /* Скриване на елементи при печат */
+        @media print {
+            .sidebar, .header button, .controls, .remove-btn, .tasks-panel { display: none !important; }
+            body { background: white; color: black; overflow: visible; }
+            .main-layout { display: block; }
+            .room { border: 2px solid #000 !important; background: white !important; margin-bottom: 20px; page-break-inside: avoid; }
+            .room-label { color: black !important; border: 1px solid #000; }
+            .placed-item { border: 1px solid #000 !important; color: black !important; }
+        }
+
         .header { background: #1e293b; padding: 10px 20px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        
         .main-layout { display: flex; gap: 15px; flex: 1; min-height: 0; }
         
-        /* Склад - по-тесен и компактен */
+        /* Склад */
         .sidebar { width: 220px; background: #1e293b; padding: 10px; border-radius: 10px; border: 1px solid #334155; overflow-y: auto; flex-shrink: 0; }
-        .source-item { 
-            background: #334155; border: 1px solid #475569; padding: 8px; border-radius: 6px; margin-bottom: 8px; 
-            cursor: grab; display: flex; align-items: center; gap: 8px; font-size: 13px;
-        }
-        .source-item:hover { border-color: #3b82f6; }
+        .source-item { background: #334155; border: 1px solid #475569; padding: 8px; border-radius: 6px; margin-bottom: 8px; cursor: grab; display: flex; align-items: center; gap: 8px; font-size: 13px; }
 
-        /* Стаите - оптимизиран размер */
+        /* Задачи */
+        .tasks-panel { width: 250px; background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid #3b82f6; overflow-y: auto; font-size: 13px; }
+        .task-card { background: #1e293b; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #3b82f6; }
+        .task-done { border-left-color: #10b981; opacity: 0.7; }
+
         .rooms-container { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-        .room { 
-            background: #1e293b; border: 3px solid #475569; border-radius: 12px; position: relative; 
-            flex: 1; min-height: 220px; /* Намален размер */
-            background-image: radial-gradient(#2d3748 1px, transparent 1px); background-size: 20px 20px;
-        }
+        .room { background: #1e293b; border: 3px solid #475569; border-radius: 12px; position: relative; flex: 1; min-height: 200px; background-image: radial-gradient(#2d3748 1px, transparent 1px); background-size: 20px 20px; }
+        .room-label { position: absolute; top: 8px; left: 10px; font-weight: bold; font-size: 14px; background: rgba(15, 23, 42, 0.8); padding: 3px 8px; border-radius: 4px; z-index: 10; }
 
-        .room-label { position: absolute; top: 8px; left: 10px; font-weight: bold; font-size: 14px; background: rgba(15, 23, 42, 0.8); padding: 3px 8px; border-radius: 4px; z-index: 10; pointer-events: none; }
+        .overload-msg { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; z-index: 20; display: none; animation: pulse 0.8s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* Предупреждение за претоварване */
-        .overload-msg { 
-            position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
-            background: #ef4444; color: white; padding: 5px 15px; border-radius: 20px;
-            font-weight: bold; font-size: 14px; z-index: 20; display: none;
-            animation: pulse 0.8s infinite; box-shadow: 0 0 15px #ef4444;
-        }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        .placed-item { 
-            position: absolute; width: 50px; height: 50px; background: #0f172a; 
-            border: 2px solid #3b82f6; border-radius: 8px; display: flex; 
-            flex-direction: column; align-items: center; justify-content: center; 
-            cursor: move; font-size: 20px; z-index: 5;
-        }
+        .placed-item { position: absolute; width: 50px; height: 50px; background: #0f172a; border: 2px solid #3b82f6; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: move; font-size: 20px; z-index: 5; }
         .placed-item small { font-size: 8px; color: #94a3b8; }
         .remove-btn { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #1e293b; }
 
         .controls { position: absolute; top: 8px; right: 10px; display: flex; gap: 5px; z-index: 10; }
         select { background: #0f172a; color: white; border: 1px solid #475569; padding: 2px; border-radius: 4px; font-size: 11px; }
-        
-        .status-info { position: absolute; bottom: 8px; right: 10px; font-size: 11px; font-weight: bold; background: rgba(15, 23, 42, 0.8); padding: 3px 8px; border-radius: 4px; }
-        .danger { border-color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.05); }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <div>
-        <h3 style="margin:0;">🏠 STEM Архитект: Електрическа Безопасност</h3>
-        <div style="color:#10b981; font-size: 14px;">Бюджет: <b id="budget">250</b> €</div>
-    </div>
-    <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px;">🔄 Изчисти</button>
-</div>
-
-<div class="main-layout">
-    <div class="sidebar">
-        <h5 style="margin:0 0 10px 0; color: #94a3b8;">📦 Влачи уредите:</h5>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🔥', 3000, 60, 1)">🔥 <b>Печка (3kW)</b></div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🚿', 2500, 55, 1)">🚿 <b>Бойлер (2.5)</b></div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🫖', 2000, 15, 1)">🫖 <b>Кана (2kW)</b></div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 300, 35, 1)">❄️ <b>Хладилник</b></div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 1500, 50, 2)">❄️ <b>Климатик</b></div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🖥️', 450, 30, 2)">🖥️ <b>Компютър</b></div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '📺', 150, 20, 2)">📺 <b>Телевизор</b></div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '💡', 60, 5, 2)">💡 <b>Лампа</b></div>
-    </div>
-
-    <div class="rooms-container">
-        <div id="room-1" class="room" ondrop="drop(event, 1)" ondragover="allowDrop(event)">
-            <div class="room-label">🥘 КУХНЯ</div>
-            <div id="warn-1" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
-            <div class="controls">
-                <select id="w-1" onchange="calc()"><option value="13">1.5mm²</option><option value="20" selected>2.5mm²</option></select>
-                <select id="f-1" onchange="calc()"><option value="10">10A</option><option value="16" selected>16A</option></select>
-            </div>
-            <div class="status-info" id="status-1">OK | 0A</div>
-        </div>
-
-        <div id="room-2" class="room" ondrop="drop(event, 2)" ondragover="allowDrop(event)">
-            <div class="room-label">🛋️ ДНЕВНА</div>
-            <div id="warn-2" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
-            <div class="controls">
-                <select id="w-2" onchange="calc()"><option value="13" selected>1.5mm²</option><option value="20">2.5mm²</option></select>
-                <select id="f-2" onchange="calc()"><option value="10" selected>10A</option><option value="16">16A</option></select>
-            </div>
-            <div class="status-info" id="status-2">OK | 0A</div>
-        </div>
-    </div>
-</div>
-
-<script>
-    let placedDevices = { 1: [], 2: [] };
-    let draggedData = null;
-
-    function allowDrop(ev) { ev.preventDefault(); }
-    function drag(ev, icon, power, price) { draggedData = { icon, power, price }; }
-
-    function drop(ev, roomNum) {
-        ev.preventDefault();
-        const rect = ev.currentTarget.getBoundingClientRect();
-        const x = ev.clientX - rect.left - 25;
-        const y = ev.clientY - rect.top - 25;
-
-        placedDevices[roomNum].push({ ...draggedData, id: Date.now(), x, y });
-        renderRoom(roomNum);
-        calc();
-    }
-
-    function renderRoom(num) {
-        const roomEl = document.getElementById('room-' + num);
-        roomEl.querySelectorAll('.placed-item').forEach(el => el.remove());
-
-        placedDevices[num].forEach(dev => {
-            const div = document.createElement('div');
-            div.className = 'placed-item';
-            div.style.left = dev.x + 'px'; div.style.top = dev.y + 'px';
-            div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(${num}, ${dev.id})">×</div>`;
-            div.onmousedown = (e) => startMove(e, dev, num);
-            roomEl.appendChild(div);
-        });
-    }
-
-    function removeItem(num, id) {
-        placedDevices[num] = placedDevices[num].filter(d => d.id !== id);
-        renderRoom(num); calc();
-    }
-
-    function calc() {
-        let budget = 250;
-        for (let r = 1; r <= 2; r++) {
-            const wire = parseInt(document.getElementById('w-' + r).value);
-            const fuse = parseInt(document.getElementById('f-' + r).value);
-            const statusEl = document.getElementById('status-' + r);
-            const warnEl = document.getElementById('warn-' + r);
-            const roomEl = document.getElementById('room-' + r);
-
-            budget -= (wire === 13 ? 10 : 20); budget -= 5;
-            let totalW = 0;
-            placedDevices[r].forEach(d => { totalW += d.power; budget -= d.price; });
-
-            const amps = totalW / 220;
-            statusEl.innerText = `${amps.toFixed(1)}A | ${totalW}W`;
-
-            if (amps > fuse || amps > wire) {
-                roomEl.classList.add('danger');
-                warnEl.style.display = 'block';
-                statusEl.style.color = "#ef4444";
-            } else {
-                roomEl.classList.remove('danger');
-                warnEl.style.display = 'none';
-                statusEl.style.color = "#10b981";
-            }
-        }
-        document.getElementById('budget').innerText = budget;
-        document.getElementById('budget').parentElement.style.color = budget < 0 ? "#ef4444" : "#10b981";
-    }
-
-    function startMove(e, dev, num) {
-        if (e.target.className === 'remove-btn') return;
-        const rect = document.getElementById('room-' + num).getBoundingClientRect();
-        document.onmousemove = (m) => {
-            dev.x = m.clientX - rect.left - 25; dev.y = m.clientY - rect.top - 25;
-            renderRoom(num);
-        };
-        document.onmouseup = () => { document.onmousemove = null; calc(); };
-    }
-</script>
-</body>
-</html>
+        .status-info { position: absolute; bottom: 8px; right: 10px; font-size: 11px
