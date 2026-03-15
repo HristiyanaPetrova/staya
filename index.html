@@ -43,4 +43,138 @@
             flex-direction: column; align-items: center; justify-content: center; 
             cursor: move; font-size: 20px; z-index: 5;
         }
-        .placed-item small { font-
+        .placed-item small { font-size: 8px; color: #94a3b8; }
+        .remove-btn { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #1e293b; }
+
+        .controls { position: absolute; top: 8px; right: 10px; display: flex; gap: 5px; z-index: 10; }
+        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 2px; border-radius: 4px; font-size: 11px; }
+        
+        .status-info { position: absolute; bottom: 8px; right: 10px; font-size: 11px; font-weight: bold; background: rgba(15, 23, 42, 0.8); padding: 3px 8px; border-radius: 4px; }
+        .danger { border-color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.05); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h3 style="margin:0;">🏠 STEM Архитект: Електрическа Безопасност</h3>
+        <div style="color:#10b981; font-size: 14px;">Бюджет: <b id="budget">250</b> €</div>
+    </div>
+    <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px;">🔄 Изчисти</button>
+</div>
+
+<div class="main-layout">
+    <div class="sidebar">
+        <h5 style="margin:0 0 10px 0; color: #94a3b8;">📦 Влачи уредите:</h5>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🔥', 3000, 60, 1)">🔥 <b>Печка (3kW)</b></div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🚿', 2500, 55, 1)">🚿 <b>Бойлер (2.5)</b></div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🫖', 2000, 15, 1)">🫖 <b>Кана (2kW)</b></div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 300, 35, 1)">❄️ <b>Хладилник</b></div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 1500, 50, 2)">❄️ <b>Климатик</b></div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🖥️', 450, 30, 2)">🖥️ <b>Компютър</b></div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '📺', 150, 20, 2)">📺 <b>Телевизор</b></div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '💡', 60, 5, 2)">💡 <b>Лампа</b></div>
+    </div>
+
+    <div class="rooms-container">
+        <div id="room-1" class="room" ondrop="drop(event, 1)" ondragover="allowDrop(event)">
+            <div class="room-label">🥘 КУХНЯ</div>
+            <div id="warn-1" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
+            <div class="controls">
+                <select id="w-1" onchange="calc()"><option value="13">1.5mm²</option><option value="20" selected>2.5mm²</option></select>
+                <select id="f-1" onchange="calc()"><option value="10">10A</option><option value="16" selected>16A</option></select>
+            </div>
+            <div class="status-info" id="status-1">OK | 0A</div>
+        </div>
+
+        <div id="room-2" class="room" ondrop="drop(event, 2)" ondragover="allowDrop(event)">
+            <div class="room-label">🛋️ ДНЕВНА</div>
+            <div id="warn-2" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
+            <div class="controls">
+                <select id="w-2" onchange="calc()"><option value="13" selected>1.5mm²</option><option value="20">2.5mm²</option></select>
+                <select id="f-2" onchange="calc()"><option value="10" selected>10A</option><option value="16">16A</option></select>
+            </div>
+            <div class="status-info" id="status-2">OK | 0A</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let placedDevices = { 1: [], 2: [] };
+    let draggedData = null;
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev, icon, power, price) { draggedData = { icon, power, price }; }
+
+    function drop(ev, roomNum) {
+        ev.preventDefault();
+        const rect = ev.currentTarget.getBoundingClientRect();
+        const x = ev.clientX - rect.left - 25;
+        const y = ev.clientY - rect.top - 25;
+
+        placedDevices[roomNum].push({ ...draggedData, id: Date.now(), x, y });
+        renderRoom(roomNum);
+        calc();
+    }
+
+    function renderRoom(num) {
+        const roomEl = document.getElementById('room-' + num);
+        roomEl.querySelectorAll('.placed-item').forEach(el => el.remove());
+
+        placedDevices[num].forEach(dev => {
+            const div = document.createElement('div');
+            div.className = 'placed-item';
+            div.style.left = dev.x + 'px'; div.style.top = dev.y + 'px';
+            div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(${num}, ${dev.id})">×</div>`;
+            div.onmousedown = (e) => startMove(e, dev, num);
+            roomEl.appendChild(div);
+        });
+    }
+
+    function removeItem(num, id) {
+        placedDevices[num] = placedDevices[num].filter(d => d.id !== id);
+        renderRoom(num); calc();
+    }
+
+    function calc() {
+        let budget = 250;
+        for (let r = 1; r <= 2; r++) {
+            const wire = parseInt(document.getElementById('w-' + r).value);
+            const fuse = parseInt(document.getElementById('f-' + r).value);
+            const statusEl = document.getElementById('status-' + r);
+            const warnEl = document.getElementById('warn-' + r);
+            const roomEl = document.getElementById('room-' + r);
+
+            budget -= (wire === 13 ? 10 : 20); budget -= 5;
+            let totalW = 0;
+            placedDevices[r].forEach(d => { totalW += d.power; budget -= d.price; });
+
+            const amps = totalW / 220;
+            statusEl.innerText = `${amps.toFixed(1)}A | ${totalW}W`;
+
+            if (amps > fuse || amps > wire) {
+                roomEl.classList.add('danger');
+                warnEl.style.display = 'block';
+                statusEl.style.color = "#ef4444";
+            } else {
+                roomEl.classList.remove('danger');
+                warnEl.style.display = 'none';
+                statusEl.style.color = "#10b981";
+            }
+        }
+        document.getElementById('budget').innerText = budget;
+        document.getElementById('budget').parentElement.style.color = budget < 0 ? "#ef4444" : "#10b981";
+    }
+
+    function startMove(e, dev, num) {
+        if (e.target.className === 'remove-btn') return;
+        const rect = document.getElementById('room-' + num).getBoundingClientRect();
+        document.onmousemove = (m) => {
+            dev.x = m.clientX - rect.left - 25; dev.y = m.clientY - rect.top - 25;
+            renderRoom(num);
+        };
+        document.onmouseup = () => { document.onmousemove = null; calc(); };
+    }
+</script>
+</body>
+</html>
