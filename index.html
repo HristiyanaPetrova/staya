@@ -2,122 +2,220 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Електрическа Безопасност 4.3</title>
+    <title>STEM Електрическа Безопасност PRO</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; color: #0f172a; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: white; padding: 10px 20px; border-radius: 12px; margin-bottom: 15px; flex-shrink: 0; }
-        .main-container { display: flex; gap: 15px; flex: 1; min-height: 0; }
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #3b82f6;
+            --danger: #ef4444;
+            --success: #10b981;
+            --text: #f1f5f9;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background: var(--bg); 
+            margin: 0; padding: 15px; 
+            display: flex; flex-direction: column; 
+            height: 100vh; color: var(--text); 
+        }
+
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--card-bg); padding: 15px 25px; 
+            border-radius: 15px; margin-bottom: 15px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+        }
+
+        .main-container { display: flex; gap: 20px; flex: 1; min-height: 0; }
         
-        .sidebar { width: 300px; background: white; border-radius: 15px; padding: 15px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .house { flex: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 5px; }
+        .sidebar { 
+            width: 320px; background: var(--card-bg); border-radius: 15px; 
+            padding: 20px; overflow-y: auto; border: 1px solid #334155;
+        }
+
+        .house { flex: 1; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-right: 10px; }
         
-        .circuit-box { background: white; border-radius: 15px; border: 3px solid #e2e8f0; padding: 20px; transition: 0.3s; }
-        .config-zone { border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .circuit-box { 
+            background: var(--card-bg); border-radius: 20px; 
+            border: 2px solid #334155; padding: 25px; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        /* Прогрес бар за натоварване */
+        .load-bar-container {
+            width: 100%; height: 10px; background: #334155; 
+            border-radius: 5px; margin: 15px 0; overflow: hidden;
+        }
+        .load-bar-fill {
+            height: 100%; width: 0%; background: var(--success);
+            transition: width 0.5s ease, background 0.5s ease;
+        }
+
+        .app-card { 
+            background: #334155; border: 1px solid #475569; 
+            padding: 15px; border-radius: 12px; margin-bottom: 12px; 
+            cursor: pointer; transition: 0.3s; 
+        }
+        .app-card:hover { 
+            border-color: var(--accent); background: #475569; 
+            transform: translateY(-3px); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
         
-        .app-card { border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; background: #fff; transition: 0.2s; }
-        .app-card:hover { border-color: #3b82f6; background: #eff6ff; transform: translateX(5px); }
+        .device-grid { display: flex; flex-wrap: wrap; gap: 15px; min-height: 90px; }
         
-        .device-grid { display: flex; flex-wrap: wrap; gap: 12px; min-height: 80px; align-items: flex-start; }
-        .device-icon { width: 70px; height: 70px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: 0.2s; }
-        .device-icon:hover { border-color: #ef4444; background: #fef2f2; }
+        .device-icon { 
+            width: 80px; height: 80px; background: #0f172a; 
+            border: 2px solid #334155; border-radius: 15px; 
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; position: relative; cursor: pointer;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+        }
+        .device-icon:hover { border-color: var(--danger); }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Ефект при пожар */
+        .on-fire { 
+            animation: screenShake 0.2s infinite, glowDanger 0.5s infinite alternate; 
+            border-color: var(--danger) !important;
+        }
+        @keyframes glowDanger {
+            from { box-shadow: 0 0 10px #ef4444; background: #450a0a; }
+            to { box-shadow: 0 0 40px #ef4444; background: #7f1d1d; }
+        }
+        @keyframes screenShake {
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -1px); }
+            100% { transform: translate(1px, -1px); }
+        }
+
+        .budget-box { font-size: 24px; font-weight: bold; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4); }
         
-        .status-tag { padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; color: white; background: #10b981; }
-        
-        .on-fire { animation: burn 0.5s infinite alternate; border-color: #ef4444 !important; background: #fee2e2 !important; }
-        @keyframes burn { from { box-shadow: 0 0 5px red; } to { box-shadow: 0 0 25px orange; } }
-        
-        .budget-box { font-size: 22px; font-weight: bold; color: #10b981; }
-        select { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; cursor: pointer; }
-        .info-text { font-size: 13px; color: #64748b; margin-top: 10px; }
+        select { 
+            padding: 10px; border-radius: 10px; background: #0f172a; 
+            color: white; border: 1px solid #475569; cursor: pointer;
+        }
+
+        .status-tag { 
+            padding: 6px 15px; border-radius: 20px; font-size: 12px; 
+            font-weight: bold; letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 24px;">⚡</span>
-        <h2 style="margin:0;">STEM Проектиране: Електрическа Безопасност</h2>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <span style="font-size: 32px;">⚡</span>
+        <div>
+            <h2 style="margin:0;">Инженерна Симулация</h2>
+            <small style="color: #94a3b8;">Проектиране на безопасна мрежа</small>
+        </div>
     </div>
-    <div class="budget-box">Бюджет: <span id="budget">250</span> €</div>
+    <div class="budget-box">Бюджет: <span id="budget" style="color: var(--success);">250</span> €</div>
 </div>
 
 <div class="main-container">
     <div class="sidebar">
-        <h3 style="margin-top:0;">📦 Склад за уреди</h3>
-        <p style="font-size: 12px; color: #64748b;">Кликни, за да добавиш уред в къщата:</p>
+        <h3 style="margin-top:0; border-bottom: 1px solid #334155; padding-bottom: 10px;">📦 Уреди</h3>
         <div id="catalog"></div>
-        <button onclick="location.reload()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#e2e8f0; border-radius:10px; cursor:pointer; font-weight:bold;">НУЛИРАЙ</button>
     </div>
 
     <div class="house">
         <div id="box-1" class="circuit-box">
-            <div class="config-zone">
-                <b style="color:#3b82f6">🔵 КРЪГ А:</b>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <b style="color: var(--accent); font-size: 18px;">🔵 КРЪГ А (Дневна)</b>
+                <span id="status-1" class="status-tag" style="background: var(--success);">СИСТЕМАТА Е OK</span>
+            </div>
+            
+            <div class="load-bar-container">
+                <div id="bar-1" class="load-bar-fill"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <select id="wire-1" onchange="updateSystem()">
-                    <option value="1.5">Кабел 1.5 mm² (13A) - 10€</option>
-                    <option value="2.5">Кабел 2.5 mm² (20A) - 20€</option>
-                    <option value="4.0">Кабел 4.0 mm² (28A) - 35€</option>
+                    <option value="1.5">Кабел 1.5mm² (13A limit)</option>
+                    <option value="2.5">Кабел 2.5mm² (20A limit)</option>
+                    <option value="4.0">Кабел 4.0mm² (28A limit)</option>
                 </select>
                 <select id="fuse-1" onchange="updateSystem()">
-                    <option value="10">Бушон 10A - 3€</option>
-                    <option value="16">Бушон 16A - 3€</option>
-                    <option value="25">Бушон 25A - 5€</option>
-                    <option value="32">Бушон 32A - 5€</option>
+                    <option value="10">Бушон 10A</option>
+                    <option value="16" selected>Бушон 16A</option>
+                    <option value="25">Бушон 25A</option>
                 </select>
-                <span id="status-1" class="status-tag">СИСТЕМАТА Е OK</span>
             </div>
+            
             <div id="grid-1" class="device-grid"></div>
-            <div class="info-text">Ток: <b id="i-1" style="color:#0f172a">0.00</b> A | Мощност: <b id="p-1" style="color:#0f172a">0</b> W</div>
+            <div style="margin-top:15px; color: #94a3b8; font-size: 14px;">
+                Натоварване: <b id="i-1" style="color: white;">0.00</b> A / <b id="p-1" style="color: white;">0</b> W
+            </div>
         </div>
 
         <div id="box-2" class="circuit-box">
-            <div class="config-zone">
-                <b style="color:#f59e0b">🟠 КРЪГ Б:</b>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <b style="color: #f59e0b; font-size: 18px;">🟠 КРЪГ Б (Кухня)</b>
+                <span id="status-2" class="status-tag" style="background: var(--success);">СИСТЕМАТА Е OK</span>
+            </div>
+
+            <div class="load-bar-container">
+                <div id="bar-2" class="load-bar-fill"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <select id="wire-2" onchange="updateSystem()">
-                    <option value="1.5">Кабел 1.5 mm² (13A) - 10€</option>
-                    <option value="2.5">Кабел 2.5 mm² (20A) - 20€</option>
-                    <option value="4.0">Кабел 4.0 mm² (28A) - 35€</option>
+                    <option value="1.5">Кабел 1.5mm² (13A limit)</option>
+                    <option value="2.5">Кабел 2.5mm² (20A limit)</option>
+                    <option value="4.0">Кабел 4.0mm² (28A limit)</option>
                 </select>
                 <select id="fuse-2" onchange="updateSystem()">
-                    <option value="10">Бушон 10A - 3€</option>
-                    <option value="16">Бушон 16A - 3€</option>
-                    <option value="25">Бушон 25A - 5€</option>
-                    <option value="32">Бушон 32A - 5€</option>
+                    <option value="10">Бушон 10A</option>
+                    <option value="16" selected>Бушон 16A</option>
+                    <option value="25">Бушон 25A</option>
                 </select>
-                <span id="status-2" class="status-tag">СИСТЕМАТА Е OK</span>
             </div>
+
             <div id="grid-2" class="device-grid"></div>
-            <div class="info-text">Ток: <b id="i-2" style="color:#0f172a">0.00</b> A | Мощност: <b id="p-2" style="color:#0f172a">0</b> W</div>
+            <div style="margin-top:15px; color: #94a3b8; font-size: 14px;">
+                Натоварване: <b id="i-2" style="color: white;">0.00</b> A / <b id="p-2" style="color: white;">0</b> W
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     const appliances = [
-        { name: "Печка", icon: "🔥", p: 3200, price: 60 },
-        { name: "Бойлер", icon: "🚿", p: 2500, price: 50 },
-        { name: "Климатик", icon: "❄️", p: 1800, price: 75 },
-        { name: "Пералня", icon: "🧺", p: 2200, price: 45 },
+        { name: "Готварска печка", icon: "🔥", p: 3000, price: 60 },
+        { name: "Бойлер", icon: "🚿", p: 2500, price: 55 },
+        { name: "Пералня", icon: "🧺", p: 2200, price: 40 },
         { name: "Ел. кана", icon: "🫖", p: 2000, price: 15 },
-        { name: "Компютър", icon: "🖥️", p: 500, price: 20 },
-        { name: "Ютия", icon: "🧶", p: 1500, price: 10 }
+        { name: "Микровълнова", icon: "🍱", p: 1200, price: 25 },
+        { name: "Компютър", icon: "🖥️", p: 500, price: 30 },
+        { name: "Телевизор", icon: "📺", p: 150, price: 20 }
     ];
 
     let circuits = { 1: [], 2: [] };
 
-    function renderCatalog() {
+    function init() {
         const cat = document.getElementById('catalog');
-        cat.innerHTML = '';
         appliances.forEach((a, i) => {
             cat.innerHTML += `
                 <div class="app-card" onclick="addDevice(${i})">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <b>${a.icon} ${a.name}</b>
-                        <b style="color:#3b82f6">${a.price} €</b>
+                        <span style="color: #10b981;">${a.price} €</span>
                     </div>
-                    <div style="font-size:11px; color:#64748b; margin-top:4px;">${a.p}W | ~${(a.p/220).toFixed(1)}A</div>
+                    <div style="font-size:12px; color: #94a3b8; margin-top:5px;">Мощност: ${a.p}W</div>
                 </div>`;
         });
+        updateSystem();
     }
 
     function addDevice(idx) {
@@ -133,62 +231,68 @@
     }
 
     function updateSystem() {
-        let currentBudget = 250;
+        let budget = 250;
         
         for (let n = 1; n <= 2; n++) {
             const wireVal = parseFloat(document.getElementById('wire-' + n).value);
             const fuseVal = parseInt(document.getElementById('fuse-' + n).value);
             const grid = document.getElementById('grid-' + n);
+            const bar = document.getElementById('bar-' + n);
             const status = document.getElementById('status-' + n);
             const box = document.getElementById('box-' + n);
 
-            // Бюджет за кабели
-            if (wireVal === 1.5) currentBudget -= 10;
-            else if (wireVal === 2.5) currentBudget -= 20;
-            else if (wireVal === 4.0) currentBudget -= 35;
-            
-            // Бюджет за бушони
-            currentBudget -= (fuseVal > 20 ? 5 : 3);
+            // Разходи
+            if (wireVal == 1.5) budget -= 10;
+            else if (wireVal == 2.5) budget -= 20;
+            else if (wireVal == 4.0) budget -= 40;
+            budget -= (fuseVal > 16 ? 10 : 5);
 
             grid.innerHTML = '';
             let pTotal = 0;
             circuits[n].forEach(d => {
                 pTotal += d.p;
-                currentBudget -= d.price;
+                budget -= d.price;
                 grid.innerHTML += `
                     <div class="device-icon" onclick="removeDevice(${n}, ${d.uid})">
-                        ${d.icon}
-                        <span style="font-size:9px; color:#64748b; margin-top:2px;">${d.p}W</span>
-                        <div style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border-radius:50%; width:14px; height:14px; font-size:10px; display:flex; align-items:center; justify-content:center;">✕</div>
+                        <span style="font-size: 24px;">${d.icon}</span>
+                        <small style="font-size: 10px; color: #94a3b8;">${d.p}W</small>
                     </div>`;
             });
 
-            let iTotal = pTotal / 220;
+            const iTotal = pTotal / 220;
+            const wireLimit = wireVal === 1.5 ? 13 : (wireVal === 2.5 ? 20 : 28);
+            
+            // Визуализация на лентата
+            const percent = Math.min((iTotal / fuseVal) * 100, 100);
+            bar.style.width = percent + '%';
+            
             document.getElementById('i-' + n).innerText = iTotal.toFixed(2);
             document.getElementById('p-' + n).innerText = pTotal;
 
-            const wireLimit = wireVal === 1.5 ? 13 : (wireVal === 2.5 ? 20 : 28);
+            // Логика за цветовете
             box.classList.remove('on-fire');
-
             if (iTotal > fuseVal) {
-                status.innerText = "🚨 БУШОНЪТ ИЗКЛЮЧИ";
+                status.innerText = "🛑 БУШОНЪТ ПАДНА";
                 status.style.background = "#f59e0b";
+                bar.style.background = "#f59e0b";
             } else if (iTotal > wireLimit) {
-                status.innerText = "🔥 ПОЖАР: КАБЕЛЪТ ПРЕТОВАРИ!";
+                status.innerText = "🧨 ПОЖАР: КАБЕЛ!";
                 status.style.background = "#ef4444";
+                bar.style.background = "#ef4444";
                 box.classList.add('on-fire');
             } else {
                 status.innerText = "✅ СИСТЕМАТА Е OK";
                 status.style.background = "#10b981";
+                bar.style.background = (percent > 80) ? "#fbbf24" : "#10b981";
             }
         }
-        
+
         const budgetEl = document.getElementById('budget');
-        budgetEl.innerText = currentBudget;
-        budgetEl.style.color = currentBudget < 0 ? "#ef4444" : "#10b981";
+        budgetEl.innerText = budget;
+        budgetEl.style.color = budget < 0 ? "#ef4444" : "#10b981";
     }
 
-    window.onload = renderCatalog;
+    window.onload = init;
 </script>
 </body>
 </html>
