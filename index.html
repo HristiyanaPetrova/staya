@@ -2,209 +2,181 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Лаборатория: Енергиен Мениджър</title>
+    <title>STEM Проектант: Енергийна мрежа 3.0</title>
     <style>
-        :root { --bg: #f4f7f6; --dark: #2c3e50; --accent: #3498db; --danger: #e74c3c; --success: #2ecc71; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); }
+        :root { --bg: #f0f2f5; --dark: #1e293b; --accent: #3b82f6; --danger: #ef4444; --success: #10b981; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; overflow: hidden; }
         
-        .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .container { display: grid; grid-template-columns: 320px 1fr; gap: 15px; height: 95vh; }
         
         /* Списък с уреди */
-        .appliance-list { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: 85vh; overflow-y: auto; }
-        .appliance-card { 
-            border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; 
-            cursor: pointer; transition: 0.3s; position: relative;
+        .sidebar { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow-y: auto; }
+        .app-card { 
+            border: 2px solid #f1f5f9; border-radius: 12px; padding: 12px; margin-bottom: 10px; 
+            cursor: pointer; transition: 0.2s; background: #fff;
         }
-        .appliance-card:hover { border-color: var(--accent); background: #f0f7ff; }
-        .appliance-card h4 { margin: 0 0 10px 0; display: flex; align-items: center; gap: 10px; }
-        .info-row { font-size: 12px; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .app-card:hover { border-color: var(--accent); transform: scale(1.02); }
+        .app-card h4 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .app-card p { margin: 5px 0 0; font-size: 11px; color: #64748b; line-height: 1.4; }
 
-        /* Електрическо табло */
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .circuit { 
-            background: white; border-radius: 15px; padding: 20px; min-height: 400px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 8px solid var(--accent);
-            position: relative;
+        /* Визуализация на къщата */
+        .house-plan { display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 10px; }
+        .room { 
+            background: #fff; border-radius: 15px; border: 3px solid #cbd5e1; padding: 15px;
+            position: relative; display: flex; flex-direction: column; transition: 0.3s;
         }
-        .circuit.overloaded { border-top-color: var(--danger); background: #fff5f5; }
+        .room.overload { border-color: var(--danger); background: #fef2f2; }
+        .room-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
         
-        .fuse-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .fuse-status { font-weight: bold; padding: 5px 10px; border-radius: 5px; font-size: 14px; }
-        
-        .active-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-        .placed-item { 
-            background: var(--dark); color: white; padding: 10px; border-radius: 8px; 
-            text-align: center; position: relative; font-size: 12px; animation: popIn 0.3s;
+        .room-content { display: flex; flex-wrap: wrap; gap: 10px; flex-grow: 1; align-content: flex-start; }
+        .device-icon { 
+            width: 70px; height: 70px; background: #f8fafc; border: 1px solid #e2e8f0; 
+            border-radius: 10px; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; position: relative; font-size: 24px;
         }
-        .remove-btn { position: absolute; top: -5px; right: -5px; background: var(--danger); border: none; border-radius: 50%; color: white; width: 20px; height: 20px; cursor: pointer; }
+        .device-icon span { font-size: 9px; font-weight: bold; margin-top: 4px; color: #475569; }
+        .remove-btn { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; cursor: pointer; font-size: 12px; }
 
-        .physics-panel { 
-            grid-column: 1 / -1; background: var(--dark); color: white; padding: 20px; 
-            border-radius: 15px; display: flex; justify-content: space-around; align-items: center;
-        }
-        .stat-box { text-align: center; }
-        .stat-box big { display: block; font-size: 30px; color: #f1c40f; font-weight: bold; }
+        /* Измервателни уреди */
+        .meter { text-align: right; }
+        .meter b { font-size: 18px; color: var(--accent); }
+        .limit-info { font-size: 10px; color: #94a3b8; }
 
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .physics-info { background: var(--dark); color: white; padding: 15px; border-radius: 15px; margin-top: 10px; display: flex; justify-content: space-around; font-size: 14px; }
+        .physics-info b { color: #fbbf24; font-size: 20px; }
     </style>
 </head>
 <body>
 
-<h2 style="text-align:center;">🏠 Инженерна Симулация: Разпределение на Товар</h2>
-
-<div class="main-grid">
-    <div class="appliance-list">
-        <h3>🛒 Избор на уреди</h3>
-        <p style="font-size: 12px; color: #666;">Кликни, за да добавиш към мрежата</p>
-        
+<div class="container">
+    <div class="sidebar">
+        <h3 style="margin-top:0;">📦 Склад за уреди</h3>
         <div id="catalog"></div>
+        <button onclick="location.reload()" style="width:100%; margin-top:20px; padding:10px; background:#f1f5f9; border:none; border-radius:10px; cursor:pointer;">Изчисти проекта</button>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="dashboard">
-            <div id="circuit1" class="circuit" ondragover="event.preventDefault()" ondrop="drop(event, 1)">
-                <div class="fuse-box">
-                    <span>🔌 КРЪГ А: Кухня</span>
-                    <span id="fuse1-label" class="fuse-status" style="background: var(--success); color: white;">OK</span>
-                </div>
-                <div id="apps1" class="active-apps"></div>
-                <div style="margin-top:20px; font-size:13px; color:#555;">
-                    Ток: <b id="c1-i">0.00</b> A | Мощност: <b id="c1-p">0</b> W
-                </div>
+    <div class="house-plan">
+        <div id="room1" class="room">
+            <div class="room-header">
+                <div><b>🏠 КРЪГ 1: Тежки уреди</b><br><span class="limit-info">Предпазител: 25A (5500W)</span></div>
+                <div class="meter"><b id="r1-i">0.00</b> A / <b id="r1-p">0</b> W</div>
             </div>
-
-            <div id="circuit2" class="circuit" ondragover="event.preventDefault()" ondrop="drop(event, 2)">
-                <div class="fuse-box">
-                    <span>🔌 КРЪГ Б: Стаи</span>
-                    <span id="fuse2-label" class="fuse-status" style="background: var(--success); color: white;">OK</span>
-                </div>
-                <div id="apps2" class="active-apps"></div>
-                <div style="margin-top:20px; font-size:13px; color:#555;">
-                    Ток: <b id="c2-i">0.00</b> A | Мощност: <b id="c2-p">0</b> W
-                </div>
-            </div>
+            <div id="cont1" class="room-content"></div>
         </div>
 
-        <div class="physics-panel">
-            <div class="stat-box">
-                <label>ОБЩ ТОК</label>
-                <big id="total-i">0.00 A</big>
+        <div id="room2" class="room">
+            <div class="room-header">
+                <div><b>🍳 КРЪГ 2: Кухня</b><br><span class="limit-info">Предпазител: 16A (3520W)</span></div>
+                <div class="meter"><b id="r2-i">0.00</b> A / <b id="r2-p">0</b> W</div>
             </div>
-            <div class="stat-box">
-                <label>ОБЩА МОЩНОСТ</label>
-                <big id="total-p">0 W</big>
+            <div id="cont2" class="room-content"></div>
+        </div>
+
+        <div id="room3" class="room">
+            <div class="room-header">
+                <div><b>🛋️ КРЪГ 3: Всекидневна</b><br><span class="limit-info">Предпазител: 10A (2200W)</span></div>
+                <div class="meter"><b id="r3-i">0.00</b> A / <b id="r3-p">0</b> W</div>
             </div>
-            <div class="stat-box">
-                <label>НАПРЕЖЕНИЕ</label>
-                <big>220 V</big>
-            </div>
-            <div style="max-width: 300px; font-size: 13px; border-left: 1px solid #555; padding-left: 20px;">
-                <b>Закони:</b><br>
-                $P = U \cdot I$<br>
-                $I = P / U$<br>
-                $R = U / I$
-            </div>
+            <div id="cont3" class="room-content"></div>
+        </div>
+
+        <div class="physics-info">
+            <div>Обща мощност: <b id="total-p">0 W</b></div>
+            <div>Общ ток: <b id="total-i">0.00 A</b></div>
+            <div>Напрежение: <b>220 V</b></div>
+            <div style="font-size: 11px; opacity: 0.7;">Закон на Ом: I = P / U | R = U / I</div>
         </div>
     </div>
 </div>
 
 <script>
     const U = 220;
-    const FUSE_LIMIT = 16; // Ампера на предпазител
-
+    const limits = { r1: 25, r2: 16, r3: 10 };
     const appliances = [
         { name: "Готварска печка", icon: "🔥", p: 3000 },
-        { name: "Бойлер", icon: "🛁", p: 2500 },
+        { name: "Бойлер", icon: "🚿", p: 2500 },
         { name: "Пералня", icon: "🧺", p: 2000 },
+        { name: "Ел. кана", icon: "🫖", p: 2200 },
         { name: "Микровълнова", icon: "🍱", p: 1200 },
+        { name: "Прахосмукачка", icon: "🧹", p: 1600 },
         { name: "Ютия", icon: "🧶", p: 1800 },
-        { name: "Компютър", icon: "🖥️", p: 400 },
-        { name: "Хладилник", icon: "❄️", p: 600 },
-        { name: "Телевизор", icon: "📺", p: 150 },
-        { name: "Кафемашина", icon: "☕", p: 1000 },
-        { name: "Ел. кана", icon: "🫖", p: 2200 }
+        { name: "Компютър", icon: "🖥️", p: 450 },
+        { name: "Телевизор", icon: "📺", p: 200 },
+        { name: "Хладилник", icon: "❄️", p: 300 },
+        { name: "Лампа", icon: "💡", p: 60 }
     ];
 
-    let state = { c1: [], c2: [] };
+    let state = { r1: [], r2: [], r3: [] };
 
     function init() {
         const catalog = document.getElementById('catalog');
-        appliances.forEach((app, index) => {
-            const current = (app.p / U).toFixed(2);
-            const resistance = (U / current).toFixed(1);
-            
+        appliances.forEach((app, idx) => {
+            const I = (app.p / U).toFixed(2);
+            const R = (U / I).toFixed(1);
             catalog.innerHTML += `
-                <div class="appliance-card">
+                <div class="app-card">
                     <h4>${app.icon} ${app.name}</h4>
-                    <div class="info-row">
-                        <span>P: <b>${app.p}W</b></span>
-                        <span>U: <b>220V</b></span>
-                        <span>I: <b>${current}A</b></span>
-                        <span>R: <b>${resistance}Ω</b></span>
-                    </div>
-                    <div style="margin-top:10px;">
-                        <button onclick="addToCircuit(${index}, 1)" style="font-size:11px; cursor:pointer;">+ Кръг А</button>
-                        <button onclick="addToCircuit(${index}, 2)" style="font-size:11px; cursor:pointer;">+ Кръг Б</button>
+                    <p>P=${app.p}W | I=${I}A | R=${R}Ω</p>
+                    <div style="margin-top:8px;">
+                        <button onclick="add(1, ${idx})" style="font-size:10px;">Кръг 1</button>
+                        <button onclick="add(2, ${idx})" style="font-size:10px;">Кръг 2</button>
+                        <button onclick="add(3, ${idx})" style="font-size:10px;">Кръг 3</button>
                     </div>
                 </div>
             `;
         });
     }
 
-    function addToCircuit(appIndex, circuitNum) {
-        const app = { ...appliances[appIndex], instanceId: Date.now() };
-        state['c' + circuitNum].push(app);
-        updateUI();
+    function add(roomNum, appIdx) {
+        const app = { ...appliances[appIdx], uid: Date.now() };
+        state['r' + roomNum].push(app);
+        update();
     }
 
-    function removeApp(instanceId, circuitNum) {
-        state['c' + circuitNum] = state['c' + circuitNum].filter(a => a.instanceId !== instanceId);
-        updateUI();
+    function remove(roomNum, uid) {
+        state['r' + roomNum] = state['r' + roomNum].filter(a => a.uid !== uid);
+        update();
     }
 
-    function updateUI() {
-        [1, 2].forEach(num => {
-            const container = document.getElementById('apps' + num);
-            const list = state['c' + num];
-            container.innerHTML = '';
+    function update() {
+        let grandP = 0;
+        [1, 2, 3].forEach(n => {
+            const cont = document.getElementById('cont' + n);
+            const room = document.getElementById('room' + n);
+            cont.innerHTML = '';
+            let roomP = 0;
             
-            let pTotal = 0;
-            list.forEach(app => {
-                pTotal += app.p;
-                container.innerHTML += `
-                    <div class="placed-item">
-                        <button class="remove-btn" onclick="removeApp(${app.instanceId}, ${num})">×</button>
-                        <div style="font-size:20px;">${app.icon}</div>
-                        <div>${app.name}</div>
+            state['r' + n].forEach(a => {
+                roomP += a.p;
+                cont.innerHTML += `
+                    <div class="device-icon">
+                        <button class="remove-btn" onclick="remove(${n}, ${a.uid})">×</button>
+                        ${a.icon}
+                        <span>${a.p}W</span>
                     </div>
                 `;
             });
 
-            const iTotal = pTotal / U;
-            document.getElementById(`c${num}-p`).innerText = pTotal;
-            document.getElementById(`c${num}-i`).innerText = iTotal.toFixed(2);
-            
-            const label = document.getElementById(`fuse${num}-label`);
-            const circuitDiv = document.getElementById(`circuit${num}`);
-            
-            if (iTotal > FUSE_LIMIT) {
-                label.innerText = "ИЗГОРЯЛ!";
-                label.style.background = "var(--danger)";
-                circuitDiv.classList.add('overloaded');
+            const roomI = roomP / U;
+            grandP += roomP;
+
+            document.getElementById(`r${n}-p`).innerText = roomP;
+            document.getElementById(`r${n}-i`).innerText = roomI.toFixed(2);
+
+            if (roomI > limits['r' + n]) {
+                room.classList.add('overload');
+                room.style.borderColor = "var(--danger)";
             } else {
-                label.innerText = "OK";
-                label.style.background = "var(--success)";
-                circuitDiv.classList.remove('overloaded');
+                room.classList.remove('overload');
+                room.style.borderColor = "#cbd5e1";
             }
         });
 
-        const totalP = state.c1.reduce((s, a) => s + a.p, 0) + state.c2.reduce((s, a) => s + a.p, 0);
-        document.getElementById('total-p').innerText = totalP + " W";
-        document.getElementById('total-i').innerText = (totalP / U).toFixed(2) + " A";
+        document.getElementById('total-p').innerText = grandP + " W";
+        document.getElementById('total-i').innerText = (grandP / U).toFixed(2) + " A";
     }
 
     init();
 </script>
-
 </body>
 </html>
