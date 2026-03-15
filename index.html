@@ -1,1 +1,162 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>STEM Инженер 4.2</title>
+    <style>
+        body { font-family: sans-serif; background: #f1f5f9; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; color: #0f172a; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: white; padding: 10px 20px; border-radius: 12px; margin-bottom: 15px; }
+        .main-container { display: flex; gap: 15px; flex: 1; overflow: hidden; }
+        .sidebar { width: 300px; background: white; border-radius: 15px; padding: 15px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .house { flex: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .circuit-box { background: white; border-radius: 15px; border: 3px solid #e2e8f0; padding: 20px; }
+        .config-zone { border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .app-card { border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #fff; }
+        .app-card:hover { border-color: #3b82f6; background: #eff6ff; }
+        .device-grid { display: flex; flex-wrap: wrap; gap: 10px; min-height: 70px; }
+        .device-icon { width: 65px; height: 65px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+        .status-tag { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; color: white; background: #10b981; }
+        .on-fire { animation: burn 0.5s infinite alternate; border-color: #ef4444 !important; background: #fee2e2 !important; }
+        @keyframes burn { from { box-shadow: 0 0 5px red; } to { box-shadow: 0 0 20px orange; } }
+        .budget-box { font-size: 22px; font-weight: bold; color: #10b981; }
+    </style>
+</head>
+<body>
 
+<div class="header">
+    <h2 style="margin:0;">👷‍♂️ STEM Електрическа Безопасност</h2>
+    <div class="budget-box">Бюджет: <span id="budget">250</span> €</div>
+</div>
+
+<div class="main-container">
+    <div class="sidebar" id="catalog">
+        <h3 style="margin-top:0;">📦 Уреди</h3>
+        </div>
+
+    <div class="house">
+        <div id="box-1" class="circuit-box">
+            <div class="config-zone">
+                <b>🔵 КРЪГ А:</b>
+                <select id="wire-1" onchange="updateSystem()">
+                    <option value="1.5">Кабел 1.5 mm² (10€)</option>
+                    <option value="2.5">Кабел 2.5 mm² (20€)</option>
+                    <option value="4.0">Кабел 4.0 mm² (35€)</option>
+                </select>
+                <select id="fuse-1" onchange="updateSystem()">
+                    <option value="10">Бушон 10A (3€)</option>
+                    <option value="16">Бушон 16A (3€)</option>
+                    <option value="25">Бушон 25A (5€)</option>
+                    <option value="32">Бушон 32A (5€)</option>
+                </select>
+                <span id="status-1" class="status-tag">OK</span>
+            </div>
+            <div id="grid-1" class="device-grid"></div>
+            <p>Товар: <b id="i-1">0.00</b> A | <b id="p-1">0</b> W</p>
+        </div>
+
+        <div id="box-2" class="circuit-box">
+            <div class="config-zone">
+                <b>🟠 КРЪГ Б:</b>
+                <select id="wire-2" onchange="updateSystem()">
+                    <option value="1.5">Кабел 1.5 mm² (10€)</option>
+                    <option value="2.5">Кабел 2.5 mm² (20€)</option>
+                    <option value="4.0">Кабел 4.0 mm² (35€)</option>
+                </select>
+                <select id="fuse-2" onchange="updateSystem()">
+                    <option value="10">Бушон 10A (3€)</option>
+                    <option value="16">Бушон 16A (3€)</option>
+                    <option value="25">Бушон 25A (5€)</option>
+                    <option value="32">Бушон 32A (5€)</option>
+                </select>
+                <span id="status-2" class="status-tag">OK</span>
+            </div>
+            <div id="grid-2" class="device-grid"></div>
+            <p>Товар: <b id="i-2">0.00</b> A | <b id="p-2">0</b> W</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const appliances = [
+        { name: "Печка", icon: "🔥", p: 3200, price: 60 },
+        { name: "Бойлер", icon: "🚿", p: 2500, price: 50 },
+        { name: "Климатик", icon: "❄️", p: 1800, price: 75 },
+        { name: "Пералня", icon: "🧺", p: 2200, price: 45 },
+        { name: "Ел. кана", icon: "🫖", p: 2000, price: 15 },
+        { name: "Компютър", icon: "🖥️", p: 500, price: 20 }
+    ];
+
+    let circuits = { 1: [], 2: [] };
+
+    function renderCatalog() {
+        const cat = document.getElementById('catalog');
+        appliances.forEach((a, i) => {
+            cat.innerHTML += `
+                <div class="app-card" onclick="addDevice(${i})">
+                    <b>${a.icon} ${a.name}</b><br>
+                    <small>${a.p}W | ${a.price}€</small>
+                </div>`;
+        });
+    }
+
+    function addDevice(idx) {
+        const dev = { ...appliances[idx], uid: Date.now() };
+        if (circuits[1].length <= circuits[2].length) circuits[1].push(dev);
+        else circuits[2].push(dev);
+        updateSystem();
+    }
+
+    function removeDevice(cNum, uid) {
+        circuits[cNum] = circuits[cNum].filter(d => d.uid !== uid);
+        updateSystem();
+    }
+
+    function updateSystem() {
+        let currentBudget = 250;
+        
+        for (let n = 1; n <= 2; n++) {
+            const wire = parseFloat(document.getElementById('wire-' + n).value);
+            const fuse = parseInt(document.getElementById('fuse-' + n).value);
+            const grid = document.getElementById('grid-' + n);
+            const status = document.getElementById('status-' + n);
+            const box = document.getElementById('box-' + n);
+
+            if (wire === 1.5) currentBudget -= 10;
+            else if (wire === 2.5) currentBudget -= 20;
+            else if (wire === 4.0) currentBudget -= 35;
+            currentBudget -= (fuse > 20 ? 5 : 3);
+
+            grid.innerHTML = '';
+            let pTotal = 0;
+            circuits[n].forEach(d => {
+                pTotal += d.p;
+                currentBudget -= d.price;
+                grid.innerHTML += `<div class="device-icon" onclick="removeDevice(${n}, ${d.uid})">${d.icon}<br><small style="font-size:9px">${d.p}W</small></div>`;
+            });
+
+            let iTotal = pTotal / 220;
+            document.getElementById('i-' + n).innerText = iTotal.toFixed(2);
+            document.getElementById('p-' + n).innerText = pTotal;
+
+            const wireLimit = wire === 1.5 ? 13 : (wire === 2.5 ? 20 : 28);
+            box.classList.remove('on-fire');
+
+            if (iTotal > fuse) {
+                status.innerText = "ИЗКЛЮЧИЛ";
+                status.style.background = "#f59e0b";
+            } else if (iTotal > wireLimit) {
+                status.innerText = "ПОЖАР!";
+                status.style.background = "#ef4444";
+                box.classList.add('on-fire');
+            } else {
+                status.innerText = "OK";
+                status.style.background = "#10b981";
+            }
+        }
+        document.getElementById('budget').innerText = currentBudget;
+    }
+
+    window.onload = renderCatalog;
+</script>
+</body>
+</html>
