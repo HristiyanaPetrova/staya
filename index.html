@@ -2,178 +2,227 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STEM Архитект 8.0</title>
+    <title>STEM Архитект: Интериорен План</title>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .header { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-        .main-layout { display: flex; gap: 15px; flex: 1; overflow: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; margin: 0; padding: 15px; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        .header { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         
-        /* Склад с фиксирани бутони */
-        .sidebar { width: 240px; background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155; overflow-y: auto; }
-        .app-item { background: #334155; border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; width: 100%; text-align: left; display: block; }
-        .app-item:hover { background: #3b82f6; border-color: white; }
-        .app-item b { display: block; font-size: 14px; }
-        .app-item span { font-size: 11px; color: #94a3b8; }
+        .main-layout { display: flex; gap: 20px; flex: 1; min-height: 0; }
+        
+        /* Склад */
+        .sidebar { width: 260px; background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155; overflow-y: auto; }
+        .source-item { 
+            background: #334155; border: 1px solid #475569; padding: 10px; border-radius: 8px; margin-bottom: 10px; 
+            cursor: grab; display: flex; align-items: center; gap: 10px; transition: 0.2s;
+        }
+        .source-item:active { cursor: grabbing; opacity: 0.6; }
+        .source-item:hover { border-color: #3b82f6; }
 
-        /* Стаи */
-        .rooms-area { flex: 1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
-        .room-box { background: #1e293b; border: 3px solid #475569; border-radius: 15px; padding: 15px; }
-        .room-title { color: #60a5fa; font-size: 18px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        /* Стаите като чертеж */
+        .rooms-container { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 20px; overflow-y: auto; padding-right: 10px; }
+        .room { 
+            background: #1e293b; border: 4px solid #475569; border-radius: 15px; position: relative; 
+            background-image: linear-gradient(#2d3748 1px, transparent 1px), linear-gradient(90px, #2d3748 1px, transparent 1px);
+            background-size: 30px 30px; /* Мрежа за подравняване */
+            min-height: 300px;
+        }
+        .room-label { position: absolute; top: 10px; left: 10px; font-weight: bold; background: rgba(15, 23, 42, 0.8); padding: 5px 10px; border-radius: 5px; z-index: 10; pointer-events: none; }
+
+        /* Уред в стаята */
+        .placed-item { 
+            position: absolute; width: 60px; height: 60px; background: #0f172a; 
+            border: 2px solid #3b82f6; border-radius: 10px; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center; 
+            cursor: move; font-size: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 5; touch-action: none;
+        }
+        .placed-item small { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+        .placed-item .remove-btn { position: absolute; top: -8px; right: -8px; background: #ef4444; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; visibility: hidden; }
+        .placed-item:hover .remove-btn { visibility: visible; }
+
+        .controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 10px; z-index: 10; }
+        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 4px; border-radius: 4px; font-size: 11px; }
         
-        .device-slot { display: flex; flex-wrap: wrap; gap: 8px; min-height: 60px; margin: 10px 0; border: 1px dashed #475569; padding: 10px; border-radius: 8px; }
-        .active-dev { font-size: 24px; background: #0f172a; border: 1px solid #3b82f6; border-radius: 8px; padding: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; }
-        
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-        .bg-ok { background: #10b981; }
-        .bg-err { background: #ef4444; animation: blink 0.5s infinite; }
-        
-        @keyframes blink { 50% { opacity: 0.7; } }
-        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 4px; border-radius: 4px; font-size: 12px; }
+        .status-box { position: absolute; bottom: 10px; right: 10px; font-size: 11px; text-align: right; background: rgba(15, 23, 42, 0.8); padding: 5px 10px; border-radius: 5px; }
+        .danger-mode { border-color: #ef4444 !important; animation: pulse-red 1s infinite; }
+        @keyframes pulse-red { 50% { box-shadow: 0 0 20px #ef4444; } }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div>
-        <h3 style="margin:0;">🏠 STEM Архитект: Електрически План</h3>
-        <div style="margin-top:5px;">Бюджет: <b id="total-budget" style="color:#10b981">250</b> €</div>
+        <h2 style="margin:0;">🏠 STEM Архитект: Планиране по позиции</h2>
+        <div style="color:#10b981; margin-top:5px;">Бюджет: <b id="budget">250</b> €</div>
     </div>
-    <button onclick="window.location.reload()" style="background:#475569; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer;">🔄 Нулирай</button>
+    <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer;">🔄 Изчисти всичко</button>
 </div>
 
 <div class="main-layout">
     <div class="sidebar">
-        <h4 style="margin-top:0; color:#94a3b8;">📦 Добави уред:</h4>
-        
-        <button class="app-item" onclick="addItem('🔥', 3000, 60, 1)">
-            <b>🔥 Готварска печка</b><span>3000W | 60€ (Кухня)</span>
-        </button>
-        
-        <button class="app-item" onclick="addItem('🚿', 2500, 55, 1)">
-            <b>🚿 Бойлер</b><span>2500W | 55€ (Кухня)</span>
-        </button>
-        
-        <button class="app-item" onclick="addItem('🫖', 2000, 15, 1)">
-            <b>🫖 Ел. кана</b><span>2000W | 15€ (Кухня)</span>
-        </button>
-        
-        <button class="app-item" onclick="addItem('❄️', 300, 35, 1)">
-            <b>❄️ Хладилник</b><span>300W | 35€ (Кухня)</span>
-        </button>
-
-        <button class="app-item" onclick="addItem('❄️', 1500, 50, 2)">
-            <b>❄️ Климатик</b><span>1500W | 50€ (Дневна)</span>
-        </button>
-
-        <button class="app-item" onclick="addItem('🖥️', 450, 30, 2)">
-            <b>🖥️ Компютър</b><span>450W | 30€ (Дневна)</span>
-        </button>
-
-        <button class="app-item" onclick="addItem('📺', 150, 20, 2)">
-            <b>📺 Телевизор</b><span>150W | 20€ (Дневна)</span>
-        </button>
-
-        <button class="app-item" onclick="addItem('💡', 60, 5, 2)">
-            <b>💡 Лампа</b><span>60W | 5€ (Дневна)</span>
-        </button>
+        <h4 style="margin-top:0;">📦 Влачи уредите:</h4>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🔥', 3000, 60, 1)">
+            <span>🔥</span> <b>Печка (3kW)</b>
+        </div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🚿', 2500, 55, 1)">
+            <span>🚿</span> <b>Бойлер (2.5kW)</b>
+        </div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🫖', 2000, 15, 1)">
+            <span>🫖</span> <b>Кана (2kW)</b>
+        </div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 300, 35, 1)">
+            <span>❄️</span> <b>Хладилник</b>
+        </div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🖥️', 450, 30, 2)">
+            <span>🖥️</span> <b>Компютър</b>
+        </div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 1500, 50, 2)">
+            <span>❄️</span> <b>Климатик</b>
+        </div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '📺', 150, 20, 2)">
+            <span>📺</span> <b>Телевизор</b>
+        </div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '💡', 60, 5, 2)">
+            <span>💡</span> <b>Лампа</b>
+        </div>
     </div>
 
-    <div class="rooms-area">
-        <div class="room-box">
-            <div class="room-title">
-                <span>🥘 КУХНЯ</span>
-                <span id="status-1" class="status-pill bg-ok">СИСТЕМАТА Е OK</span>
-            </div>
-            <div style="display:flex; gap:10px;">
+    <div class="rooms-container">
+        <div id="room-1" class="room" ondrop="drop(event, 1)" ondragover="allowDrop(event)">
+            <div class="room-label">🥘 КУХНЯ (Кръг А)</div>
+            <div class="controls">
                 <select id="w-1" onchange="calc()">
-                    <option value="13">Кабел 1.5mm² (13A Max)</option>
-                    <option value="20" selected>Кабел 2.5mm² (20A Max)</option>
+                    <option value="13">1.5mm² (13A)</option>
+                    <option value="20" selected>2.5mm² (20A)</option>
                 </select>
                 <select id="f-1" onchange="calc()">
-                    <option value="10">Бушон 10A</option>
-                    <option value="16" selected>Бушон 16A</option>
-                    <option value="25">Бушон 25A</option>
+                    <option value="10">10A</option>
+                    <option value="16" selected>16A</option>
                 </select>
             </div>
-            <div id="grid-1" class="device-slot"></div>
-            <div id="info-1" style="font-size:11px; color:#94a3b8;">0A | 0W</div>
+            <div class="status-box" id="status-1">OK | 0A</div>
         </div>
 
-        <div class="room-box">
-            <div class="room-title">
-                <span>🛋️ ДНЕВНА</span>
-                <span id="status-2" class="status-pill bg-ok">СИСТЕМАТА Е OK</span>
-            </div>
-            <div style="display:flex; gap:10px;">
+        <div id="room-2" class="room" ondrop="drop(event, 2)" ondragover="allowDrop(event)">
+            <div class="room-label">🛋️ ДНЕВНА (Кръг Б)</div>
+            <div class="controls">
                 <select id="w-2" onchange="calc()">
-                    <option value="13" selected>Кабел 1.5mm² (13A Max)</option>
-                    <option value="20">Кабел 2.5mm² (20A Max)</option>
+                    <option value="13" selected>1.5mm² (13A)</option>
+                    <option value="20">2.5mm² (20A)</option>
                 </select>
                 <select id="f-2" onchange="calc()">
-                    <option value="10" selected>Бушон 10A</option>
-                    <option value="16">Бушон 16A</option>
+                    <option value="10" selected>10A</option>
+                    <option value="16">16A</option>
                 </select>
             </div>
-            <div id="grid-2" class="device-slot"></div>
-            <div id="info-2" style="font-size:11px; color:#94a3b8;">0A | 0W</div>
+            <div class="status-box" id="status-2">OK | 0A</div>
         </div>
     </div>
 </div>
 
 <script>
-    let house = { 1: [], 2: [] };
+    let placedDevices = { 1: [], 2: [] };
+    let draggedData = null;
 
-    function addItem(icon, power, price, room) {
-        house[room].push({ icon, power, price, id: Date.now() });
+    function allowDrop(ev) { ev.preventDefault(); }
+
+    function drag(ev, icon, power, price, preferredRoom) {
+        draggedData = { icon, power, price, preferredRoom };
+    }
+
+    function drop(ev, roomNum) {
+        ev.preventDefault();
+        const rect = ev.currentTarget.getBoundingClientRect();
+        const x = ev.clientX - rect.left - 30; // центриране
+        const y = ev.clientY - rect.top - 30;
+
+        const newDevice = {
+            ...draggedData,
+            id: Date.now(),
+            x: x,
+            y: y
+        };
+
+        placedDevices[roomNum].push(newDevice);
+        renderRoom(roomNum);
         calc();
     }
 
-    function removeItem(room, id) {
-        house[room] = house[room].filter(x => x.id !== id);
+    function renderRoom(roomNum) {
+        const roomEl = document.getElementById('room-' + roomNum);
+        // Махаме старите уреди, но пазим етикетите и контролите
+        roomEl.querySelectorAll('.placed-item').forEach(el => el.remove());
+
+        placedDevices[roomNum].forEach(dev => {
+            const div = document.createElement('div');
+            div.className = 'placed-item';
+            div.style.left = dev.x + 'px';
+            div.style.top = dev.y + 'px';
+            div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(${roomNum}, ${dev.id})">×</div>`;
+            
+            // Опция за местене след поставяне
+            div.onmousedown = (e) => startMove(e, dev, roomNum);
+            
+            roomEl.appendChild(div);
+        });
+    }
+
+    function removeItem(roomNum, id) {
+        placedDevices[roomNum] = placedDevices[roomNum].filter(d => d.id !== id);
+        renderRoom(roomNum);
         calc();
     }
 
     function calc() {
         let budget = 250;
         for (let r = 1; r <= 2; r++) {
-            const wire = parseInt(document.getElementById('w' + '-' + r).value);
-            const fuse = parseInt(document.getElementById('f' + '-' + r).value);
-            const grid = document.getElementById('grid' + '-' + r);
-            const status = document.getElementById('status' + '-' + r);
+            const wire = parseInt(document.getElementById('w-' + r).value);
+            const fuse = parseInt(document.getElementById('f-' + r).value);
+            const statusEl = document.getElementById('status-' + r);
+            const roomEl = document.getElementById('room-' + r);
 
-            // Инсталационни разходи
             budget -= (wire === 13 ? 10 : 20);
-            budget -= (fuse > 16 ? 10 : 5);
+            budget -= 5;
 
-            grid.innerHTML = '';
             let totalW = 0;
-            house[r].forEach(item => {
-                totalW += item.power;
-                budget -= item.price;
-                grid.innerHTML += `<div class="active-dev" onclick="removeItem(${r}, ${item.id})">${item.icon}</div>`;
+            placedDevices[r].forEach(d => {
+                totalW += d.power;
+                budget -= d.price;
             });
 
-            const currentA = totalW / 220;
-            document.getElementById('info-' + r).innerText = currentA.toFixed(1) + " Amps | " + totalW + " Watts";
+            const amps = totalW / 220;
+            statusEl.innerHTML = `${amps.toFixed(1)}A | ${totalW}W`;
 
-            if (currentA > fuse) {
-                status.innerText = "🚨 БУШОНЪТ ИЗКЛЮЧИ";
-                status.className = "status-pill bg-err";
-            } else if (currentA > wire) {
-                status.innerText = "🔥 КАБЕЛЪТ ПРЕТОВАРИ";
-                status.className = "status-pill bg-err";
+            roomEl.classList.remove('danger-mode');
+            if (amps > fuse || amps > wire) {
+                roomEl.classList.add('danger-mode');
+                statusEl.style.color = "#ef4444";
             } else {
-                status.innerText = "✅ СИСТЕМАТА Е OK";
-                status.className = "status-pill bg-ok";
+                statusEl.style.color = "#10b981";
             }
         }
-        document.getElementById('total-budget').innerText = budget;
-        document.getElementById('total-budget').style.color = budget < 0 ? "#ef4444" : "#10b981";
+        document.getElementById('budget').innerText = budget;
+        document.getElementById('budget').parentElement.style.color = budget < 0 ? "#ef4444" : "#10b981";
     }
 
-    // Стартираме калкулацията веднъж при зареждане
-    calc();
+    // Местене на вече поставен уред
+    function startMove(e, dev, roomNum) {
+        if (e.target.className === 'remove-btn') return;
+        const roomEl = document.getElementById('room-' + roomNum);
+        const rect = roomEl.getBoundingClientRect();
+
+        function onMouseMove(moveEvent) {
+            dev.x = moveEvent.clientX - rect.left - 30;
+            dev.y = moveEvent.clientY - rect.top - 30;
+            renderRoom(roomNum);
+        }
+
+        document.onmousemove = onMouseMove;
+        document.onmouseup = () => {
+            document.onmousemove = null;
+            calc();
+        };
+    }
 </script>
 </body>
 </html>
