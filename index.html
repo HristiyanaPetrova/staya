@@ -2,227 +2,45 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Архитект: Интериорен План</title>
+    <title>STEM Архитект 9.0: Компактен План</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; margin: 0; padding: 15px; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-        .header { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; margin: 0; padding: 10px; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
-        .main-layout { display: flex; gap: 20px; flex: 1; min-height: 0; }
+        .header { background: #1e293b; padding: 10px 20px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         
-        /* Склад */
-        .sidebar { width: 260px; background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155; overflow-y: auto; }
+        .main-layout { display: flex; gap: 15px; flex: 1; min-height: 0; }
+        
+        /* Склад - по-тесен и компактен */
+        .sidebar { width: 220px; background: #1e293b; padding: 10px; border-radius: 10px; border: 1px solid #334155; overflow-y: auto; flex-shrink: 0; }
         .source-item { 
-            background: #334155; border: 1px solid #475569; padding: 10px; border-radius: 8px; margin-bottom: 10px; 
-            cursor: grab; display: flex; align-items: center; gap: 10px; transition: 0.2s;
+            background: #334155; border: 1px solid #475569; padding: 8px; border-radius: 6px; margin-bottom: 8px; 
+            cursor: grab; display: flex; align-items: center; gap: 8px; font-size: 13px;
         }
-        .source-item:active { cursor: grabbing; opacity: 0.6; }
         .source-item:hover { border-color: #3b82f6; }
 
-        /* Стаите като чертеж */
-        .rooms-container { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 20px; overflow-y: auto; padding-right: 10px; }
+        /* Стаите - оптимизиран размер */
+        .rooms-container { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
         .room { 
-            background: #1e293b; border: 4px solid #475569; border-radius: 15px; position: relative; 
-            background-image: linear-gradient(#2d3748 1px, transparent 1px), linear-gradient(90px, #2d3748 1px, transparent 1px);
-            background-size: 30px 30px; /* Мрежа за подравняване */
-            min-height: 300px;
+            background: #1e293b; border: 3px solid #475569; border-radius: 12px; position: relative; 
+            flex: 1; min-height: 220px; /* Намален размер */
+            background-image: radial-gradient(#2d3748 1px, transparent 1px); background-size: 20px 20px;
         }
-        .room-label { position: absolute; top: 10px; left: 10px; font-weight: bold; background: rgba(15, 23, 42, 0.8); padding: 5px 10px; border-radius: 5px; z-index: 10; pointer-events: none; }
 
-        /* Уред в стаята */
+        .room-label { position: absolute; top: 8px; left: 10px; font-weight: bold; font-size: 14px; background: rgba(15, 23, 42, 0.8); padding: 3px 8px; border-radius: 4px; z-index: 10; pointer-events: none; }
+
+        /* Предупреждение за претоварване */
+        .overload-msg { 
+            position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+            background: #ef4444; color: white; padding: 5px 15px; border-radius: 20px;
+            font-weight: bold; font-size: 14px; z-index: 20; display: none;
+            animation: pulse 0.8s infinite; box-shadow: 0 0 15px #ef4444;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
         .placed-item { 
-            position: absolute; width: 60px; height: 60px; background: #0f172a; 
-            border: 2px solid #3b82f6; border-radius: 10px; display: flex; 
+            position: absolute; width: 50px; height: 50px; background: #0f172a; 
+            border: 2px solid #3b82f6; border-radius: 8px; display: flex; 
             flex-direction: column; align-items: center; justify-content: center; 
-            cursor: move; font-size: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            z-index: 5; touch-action: none;
+            cursor: move; font-size: 20px; z-index: 5;
         }
-        .placed-item small { font-size: 9px; color: #94a3b8; margin-top: 2px; }
-        .placed-item .remove-btn { position: absolute; top: -8px; right: -8px; background: #ef4444; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; visibility: hidden; }
-        .placed-item:hover .remove-btn { visibility: visible; }
-
-        .controls { position: absolute; top: 10px; right: 10px; display: flex; gap: 10px; z-index: 10; }
-        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 4px; border-radius: 4px; font-size: 11px; }
-        
-        .status-box { position: absolute; bottom: 10px; right: 10px; font-size: 11px; text-align: right; background: rgba(15, 23, 42, 0.8); padding: 5px 10px; border-radius: 5px; }
-        .danger-mode { border-color: #ef4444 !important; animation: pulse-red 1s infinite; }
-        @keyframes pulse-red { 50% { box-shadow: 0 0 20px #ef4444; } }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <div>
-        <h2 style="margin:0;">🏠 STEM Архитект: Планиране по позиции</h2>
-        <div style="color:#10b981; margin-top:5px;">Бюджет: <b id="budget">250</b> €</div>
-    </div>
-    <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer;">🔄 Изчисти всичко</button>
-</div>
-
-<div class="main-layout">
-    <div class="sidebar">
-        <h4 style="margin-top:0;">📦 Влачи уредите:</h4>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🔥', 3000, 60, 1)">
-            <span>🔥</span> <b>Печка (3kW)</b>
-        </div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🚿', 2500, 55, 1)">
-            <span>🚿</span> <b>Бойлер (2.5kW)</b>
-        </div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🫖', 2000, 15, 1)">
-            <span>🫖</span> <b>Кана (2kW)</b>
-        </div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 300, 35, 1)">
-            <span>❄️</span> <b>Хладилник</b>
-        </div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '🖥️', 450, 30, 2)">
-            <span>🖥️</span> <b>Компютър</b>
-        </div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 1500, 50, 2)">
-            <span>❄️</span> <b>Климатик</b>
-        </div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '📺', 150, 20, 2)">
-            <span>📺</span> <b>Телевизор</b>
-        </div>
-        <div class="source-item" draggable="true" ondragstart="drag(event, '💡', 60, 5, 2)">
-            <span>💡</span> <b>Лампа</b>
-        </div>
-    </div>
-
-    <div class="rooms-container">
-        <div id="room-1" class="room" ondrop="drop(event, 1)" ondragover="allowDrop(event)">
-            <div class="room-label">🥘 КУХНЯ (Кръг А)</div>
-            <div class="controls">
-                <select id="w-1" onchange="calc()">
-                    <option value="13">1.5mm² (13A)</option>
-                    <option value="20" selected>2.5mm² (20A)</option>
-                </select>
-                <select id="f-1" onchange="calc()">
-                    <option value="10">10A</option>
-                    <option value="16" selected>16A</option>
-                </select>
-            </div>
-            <div class="status-box" id="status-1">OK | 0A</div>
-        </div>
-
-        <div id="room-2" class="room" ondrop="drop(event, 2)" ondragover="allowDrop(event)">
-            <div class="room-label">🛋️ ДНЕВНА (Кръг Б)</div>
-            <div class="controls">
-                <select id="w-2" onchange="calc()">
-                    <option value="13" selected>1.5mm² (13A)</option>
-                    <option value="20">2.5mm² (20A)</option>
-                </select>
-                <select id="f-2" onchange="calc()">
-                    <option value="10" selected>10A</option>
-                    <option value="16">16A</option>
-                </select>
-            </div>
-            <div class="status-box" id="status-2">OK | 0A</div>
-        </div>
-    </div>
-</div>
-
-<script>
-    let placedDevices = { 1: [], 2: [] };
-    let draggedData = null;
-
-    function allowDrop(ev) { ev.preventDefault(); }
-
-    function drag(ev, icon, power, price, preferredRoom) {
-        draggedData = { icon, power, price, preferredRoom };
-    }
-
-    function drop(ev, roomNum) {
-        ev.preventDefault();
-        const rect = ev.currentTarget.getBoundingClientRect();
-        const x = ev.clientX - rect.left - 30; // центриране
-        const y = ev.clientY - rect.top - 30;
-
-        const newDevice = {
-            ...draggedData,
-            id: Date.now(),
-            x: x,
-            y: y
-        };
-
-        placedDevices[roomNum].push(newDevice);
-        renderRoom(roomNum);
-        calc();
-    }
-
-    function renderRoom(roomNum) {
-        const roomEl = document.getElementById('room-' + roomNum);
-        // Махаме старите уреди, но пазим етикетите и контролите
-        roomEl.querySelectorAll('.placed-item').forEach(el => el.remove());
-
-        placedDevices[roomNum].forEach(dev => {
-            const div = document.createElement('div');
-            div.className = 'placed-item';
-            div.style.left = dev.x + 'px';
-            div.style.top = dev.y + 'px';
-            div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(${roomNum}, ${dev.id})">×</div>`;
-            
-            // Опция за местене след поставяне
-            div.onmousedown = (e) => startMove(e, dev, roomNum);
-            
-            roomEl.appendChild(div);
-        });
-    }
-
-    function removeItem(roomNum, id) {
-        placedDevices[roomNum] = placedDevices[roomNum].filter(d => d.id !== id);
-        renderRoom(roomNum);
-        calc();
-    }
-
-    function calc() {
-        let budget = 250;
-        for (let r = 1; r <= 2; r++) {
-            const wire = parseInt(document.getElementById('w-' + r).value);
-            const fuse = parseInt(document.getElementById('f-' + r).value);
-            const statusEl = document.getElementById('status-' + r);
-            const roomEl = document.getElementById('room-' + r);
-
-            budget -= (wire === 13 ? 10 : 20);
-            budget -= 5;
-
-            let totalW = 0;
-            placedDevices[r].forEach(d => {
-                totalW += d.power;
-                budget -= d.price;
-            });
-
-            const amps = totalW / 220;
-            statusEl.innerHTML = `${amps.toFixed(1)}A | ${totalW}W`;
-
-            roomEl.classList.remove('danger-mode');
-            if (amps > fuse || amps > wire) {
-                roomEl.classList.add('danger-mode');
-                statusEl.style.color = "#ef4444";
-            } else {
-                statusEl.style.color = "#10b981";
-            }
-        }
-        document.getElementById('budget').innerText = budget;
-        document.getElementById('budget').parentElement.style.color = budget < 0 ? "#ef4444" : "#10b981";
-    }
-
-    // Местене на вече поставен уред
-    function startMove(e, dev, roomNum) {
-        if (e.target.className === 'remove-btn') return;
-        const roomEl = document.getElementById('room-' + roomNum);
-        const rect = roomEl.getBoundingClientRect();
-
-        function onMouseMove(moveEvent) {
-            dev.x = moveEvent.clientX - rect.left - 30;
-            dev.y = moveEvent.clientY - rect.top - 30;
-            renderRoom(roomNum);
-        }
-
-        document.onmousemove = onMouseMove;
-        document.onmouseup = () => {
-            document.onmousemove = null;
-            calc();
-        };
-    }
-</script>
-</body>
-</html>
+        .placed-item small { font-
