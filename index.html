@@ -2,180 +2,216 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Инженер: 3D Умна Стая + Схема</title>
+    <title>STEM Инженер 2.0: Проектиране на инсталация</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #fdf6e3; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; overflow-x: hidden; }
-        h1 { color: #b58900; }
+        :root { --main-bg: #f0f2f5; --room-bg: #e5e5e5; --accent: #2c3e50; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--main-bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Ефект "Късо съединение" */
-        .blackout { animation: flash 0.2s 3; background: #000 !important; }
-        @keyframes flash { 50% { background: #fff; } }
-
-        .container { display: flex; gap: 30px; max-width: 1400px; width: 100%; }
+        .container { display: flex; gap: 20px; max-width: 1400px; width: 100%; height: 85vh; }
         
-        #room-container {
-            width: 700px; height: 500px; background: #eee8d5; border: 4px solid #93a1a1;
-            position: relative; border-radius: 12px; perspective: 1000px; transition: filter 0.5s;
+        /* Визуализация на стаята */
+        #viewport {
+            flex: 2; background: white; border-radius: 15px; position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; border: 2px solid #ccc;
         }
 
-        #room-canvas {
-            width: 100%; height: 100%; position: absolute; top: 50px; left: 50px;
-            transform: rotateX(60deg) rotateZ(-45deg);
-            background-image: linear-gradient(#f9f5d7 1px, transparent 1px), linear-gradient(90px, #f9f5d7 1px, transparent 1px);
-            background-size: 30px 30px;
+        #room-walls {
+            position: absolute; width: 600px; height: 400px;
+            top: 50%; left: 50%; transform: translate(-50%, -40%) rotateX(60deg) rotateZ(-45deg);
+            background: #fff; border-bottom: 8px solid #999; border-right: 8px solid #bbb;
+            box-shadow: 20px 20px 50px rgba(0,0,0,0.2);
+            background-image: radial-gradient(#d1d1d1 1px, transparent 1px); background-size: 20px 20px;
         }
 
-        .controls { flex: 1; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        /* Меню с обекти */
+        .sidebar { flex: 1; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-y: auto; }
         
-        .device-card {
-            background: #fdf6e3; margin-bottom: 8px; padding: 10px; border-radius: 8px;
-            cursor: pointer; display: flex; align-items: center; border-left: 5px solid #268bd2;
+        .category-title { font-weight: bold; color: var(--accent); margin: 15px 0 5px; border-bottom: 2px solid #eee; }
+        
+        .item-card {
+            display: flex; align-items: center; background: #f8f9fa; padding: 12px;
+            margin-bottom: 8px; border-radius: 8px; cursor: pointer; border: 1px solid #eef;
+            transition: 0.2s; font-size: 14px;
+        }
+        .item-card:hover { transform: scale(1.02); background: #eef2ff; }
+        .item-icon { font-size: 32px; margin-right: 15px; }
+
+        /* Кабели */
+        #cable-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+        /* Обект в стаята */
+        .placed-object {
+            position: absolute; cursor: move; z-index: 10; text-align: center;
+            user-select: none; transition: filter 0.3s;
+        }
+        .placed-object .icon { font-size: 60px; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); }
+        .placed-object .label { 
+            background: rgba(44, 62, 80, 0.9); color: white; padding: 2px 8px;
+            border-radius: 10px; font-size: 11px; margin-top: -5px; display: block;
         }
 
-        .dashboard {
-            width: 100%; max-width: 1400px; display: flex; justify-content: space-around;
-            background: #073642; color: white; padding: 20px; margin-top: 20px; border-radius: 12px;
+        /* Табло */
+        .hud {
+            width: 100%; max-width: 1400px; background: #2c3e50; color: white;
+            margin-top: 15px; padding: 15px; border-radius: 12px; display: flex; justify-content: space-around;
         }
+        .hud-stat span { display: block; font-size: 24px; color: #f1c40f; font-weight: bold; }
 
-        .stat span { font-size: 28px; font-weight: bold; display: block; color: #b58900; }
-
-        .app-object { position: absolute; cursor: move; text-align: center; z-index: 10; }
-        .obj-icon { font-size: 40px; }
-        .obj-label { background: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 4px; font-size: 10px; }
-
-        .danger-ui { color: #dc322f !important; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
-        #reset-btn { background: #dc322f; color: white; }
-        #download-btn { background: #859900; color: white; }
+        .wire-mode-active { cursor: crosshair !important; border: 3px solid #3498db !important; }
     </style>
 </head>
-<body id="main-body">
+<body>
 
-    <h1>⚡ STEM Инженер: 3D Умна Стая</h1>
-    
+    <h2 style="color: #2c3e50;">⚡ STEM Лаборатория: Електро Проектант</h2>
+
     <div class="container">
-        <div id="room-container">
-            <div id="room-canvas"></div>
-            <div id="explosion" style="display:none; position:absolute; top:40%; left:45%; font-size:100px; z-index:100;">💥</div>
+        <div id="viewport">
+            <svg id="cable-svg"></svg>
+            <div id="room-walls"></div>
         </div>
 
-        <div class="controls">
-            <h3>Добави компоненти:</h3>
-            <div class="device-card" style="border-color: #d33682;" onclick="addObject('🛏️', 'Легло', 0)">🛏️ Легло (Декор)</div>
-            <div class="device-card" onclick="addObject('🖥️', 'Компютър', 400)">🖥️ Компютър (400W)</div>
-            <div class="device-card" onclick="addObject('❄️', 'Климатик', 2500)">❄️ Климатик (2500W)</div>
-            <div class="device-card" onclick="addObject('🔥', 'Печка', 3000)">🔥 Печка (3000W)</div>
-            <div class="device-card" onclick="addObject('☕', 'Кана за вода', 2000)">☕ Кана (2000W)</div>
-
-            <div class="btn-group">
-                <button id="reset-btn" onclick="resetRoom()">Рестарт</button>
-                <button id="download-btn" onclick="downloadSchema()">Изтегли Схема</button>
+        <div class="sidebar">
+            <button onclick="toggleWireMode()" id="wire-btn" style="width:100%; padding:10px; background:#3498db; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:10px;">🔌 РЕЖИМ: КАБЕЛИ (ИЗКЛ.)</button>
+            
+            <div class="category-title">ЕЛЕМЕНТИ</div>
+            <div class="item-card" onclick="spawn('🔲', 'Контакт', 0)">
+                <span class="item-icon">🔲</span> <span>Контакт (За стена)</span>
             </div>
-            <p style="font-size: 12px; color: #666; margin-top: 10px;">* Кликни с десен бутон върху предмет, за да го премахнеш.</p>
+
+            <div class="category-title">УРЕДИ (ТОВАР)</div>
+            <div class="item-card" onclick="spawn('🖥️', 'Компютър', 450)">
+                <span class="item-icon">🖥️</span> <span>Компютър (450W)</span>
+            </div>
+            <div class="item-card" onclick="spawn('📺', 'Телевизор', 200)">
+                <span class="item-icon">📺</span> <span>Телевизор (200W)</span>
+            </div>
+            <div class="item-card" onclick="spawn('❄️', 'Хладилник', 800)">
+                <span class="item-icon">❄️</span> <span>Хладилник (800W)</span>
+            </div>
+            <div class="item-card" onclick="spawn('🔥', 'Печка', 2500)">
+                <span class="item-icon">🔥</span> <span>Готварска печка (2500W)</span>
+            </div>
+            <div class="item-card" onclick="spawn('💡', 'Лампа', 40)">
+                <span class="item-icon">💡</span> <span>Настолна лампа (40W)</span>
+            </div>
+
+            <div class="category-title">МЕБЕЛИ</div>
+            <div class="item-card" onclick="spawn('🛋️', 'Диван', 0)">
+                <span class="item-icon">🛋️</span> <span>Диван</span>
+            </div>
+            <div class="item-card" onclick="spawn('🧱', 'Шкаф', 0)">
+                <span class="item-icon">🧱</span> <span>Шкаф</span>
+            </div>
+
+            <button onclick="clearRoom()" style="width:100%; margin-top:20px; padding:8px; background:#e74c3c; color:white; border:none; cursor:pointer; border-radius:5px;">Изчисти всичко</button>
         </div>
     </div>
 
-    <div class="dashboard">
-        <div class="stat"><span id="total-p">0 W</span><label>Мощност</label></div>
-        <div class="stat"><span id="total-i">0.00 A</span><label>Ток (I)</label></div>
-        <div class="stat"><span>220 V</span><label>Напрежение (U)</label></div>
-        <div class="stat"><span>16 A</span><label>Бушон</label></div>
+    <div class="hud">
+        <div class="hud-stat"><label>Обща Мощност</label><span id="stat-p">0 W</span></div>
+        <div class="hud-stat"><label>Големина на тока (I)</label><span id="stat-i">0.00 A</span></div>
+        <div class="hud-stat"><label>Напрежение (U)</label><span>220 V</span></div>
+        <div class="hud-stat"><label>Бушон</label><span>16 A</span></div>
     </div>
 
     <script>
-        let devices = [];
+        let isWireMode = false;
+        let selectedForWire = null;
+        let objects = [];
         const voltage = 220;
-        const limit = 16;
 
-        function addObject(icon, name, power) {
-            const current = power / voltage;
-            const resistance = power > 0 ? (voltage / current).toFixed(1) : "∞";
-            
-            devices.push({ name, power, current, resistance });
-            
+        function spawn(icon, name, power) {
+            const id = 'obj-' + Date.now();
             const div = document.createElement('div');
-            div.className = 'app-object';
+            div.className = 'placed-object';
+            div.id = id;
             div.style.left = '100px'; div.style.top = '100px';
-            div.innerHTML = `<span class="obj-icon">${icon}</span><div class="obj-label">${name}</div>`;
+            div.innerHTML = `<div class="icon">${icon}</div><div class="label">${name} ${power > 0 ? '('+power+'W)' : ''}</div>`;
             
-            // Drag and Drop
-            div.onmousedown = function(e) {
-                let rect = document.getElementById('room-canvas').getBoundingClientRect();
+            div.onmousedown = (e) => {
+                if(isWireMode) {
+                    handleWireConnection(id);
+                    return;
+                }
+                let rect = document.getElementById('viewport').getBoundingClientRect();
                 document.onmousemove = (e) => {
-                    div.style.left = e.clientX - rect.left - 20 + 'px';
-                    div.style.top = e.clientY - rect.top - 20 + 'px';
+                    div.style.left = e.clientX - rect.left - 30 + 'px';
+                    div.style.top = e.clientY - rect.top - 30 + 'px';
+                    updateWires();
                 };
                 document.onmouseup = () => document.onmousemove = null;
             };
 
-            // Премахване
-            div.oncontextmenu = (e) => {
-                e.preventDefault();
-                devices = devices.filter(d => d.name !== name || d.power !== power);
-                div.remove();
-                updatePhysics();
-            };
+            div.oncontextmenu = (e) => { e.preventDefault(); div.remove(); objects = objects.filter(o => o.id !== id); calculatePhysics(); updateWires(); };
 
-            document.getElementById('room-canvas').appendChild(div);
-            updatePhysics();
+            document.getElementById('viewport').appendChild(div);
+            objects.push({ id, name, power, wires: [] });
+            calculatePhysics();
         }
 
-        function updatePhysics() {
-            let totalP = devices.reduce((sum, d) => sum + d.power, 0);
-            let totalI = totalP / voltage;
-
-            document.getElementById('total-p').innerText = totalP + " W";
-            document.getElementById('total-i').innerText = totalI.toFixed(2) + " A";
-
-            if (totalI > limit) {
-                document.getElementById('total-i').classList.add('danger-ui');
-                triggerBlackout();
+        function handleWireConnection(id) {
+            if(!selectedForWire) {
+                selectedForWire = id;
+                document.getElementById(id).style.filter = "drop-shadow(0 0 10px #3498db)";
             } else {
-                document.getElementById('total-i').classList.remove('danger-ui');
-                document.getElementById('room-container').style.filter = "none";
-                document.getElementById('explosion').style.display = "none";
+                if(selectedForWire !== id) {
+                    addWire(selectedForWire, id);
+                }
+                document.getElementById(selectedForWire).style.filter = "none";
+                selectedForWire = null;
             }
         }
 
-        function triggerBlackout() {
-            document.getElementById('main-body').classList.add('blackout');
-            setTimeout(() => {
-                document.getElementById('main-body').classList.remove('blackout');
-                document.getElementById('room-container').style.filter = "grayscale(1) brightness(0.5)";
-                document.getElementById('explosion').style.display = "block";
-            }, 600);
+        function addWire(id1, id2) {
+            const obj1 = objects.find(o => o.id === id1);
+            obj1.wires.push(id2);
+            updateWires();
         }
 
-        function downloadSchema() {
-            let content = "--- ЕЛЕКТРИЧЕСКА СХЕМА НА ОБЕКТА ---\n\n";
-            content += `Работно напрежение: ${voltage}V\n`;
-            content += `Максимален ток на предпазителя: ${limit}A\n`;
-            content += "-------------------------------------------\n";
-            
-            devices.forEach((d, i) => {
-                content += `${i+1}. ${d.name}: P=${d.power}W, I=${d.current.toFixed(2)}A, R=${d.resistance}Ω\n`;
+        function updateWires() {
+            const svg = document.getElementById('cable-svg');
+            svg.innerHTML = '';
+            objects.forEach(obj => {
+                obj.wires.forEach(targetId => {
+                    const el1 = document.getElementById(obj.id);
+                    const el2 = document.getElementById(targetId);
+                    if(el1 && el2) {
+                        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                        line.setAttribute("x1", parseInt(el1.style.left) + 30);
+                        line.setAttribute("y1", parseInt(el1.style.top) + 30);
+                        line.setAttribute("x2", parseInt(el2.style.left) + 30);
+                        line.setAttribute("y2", parseInt(el2.style.top) + 30);
+                        line.setAttribute("stroke", "#333");
+                        line.setAttribute("stroke-width", "3");
+                        line.setAttribute("stroke-dasharray", "5,5");
+                        svg.appendChild(line);
+                    }
+                });
             });
-
-            let totalP = devices.reduce((sum, d) => sum + d.power, 0);
-            let totalI = totalP / voltage;
-
-            content += "-------------------------------------------\n";
-            content += `ОБЩА МОЩНОСТ: ${totalP} W\n`;
-            content += `ОБЩ ТОК: ${totalI.toFixed(2)} A\n`;
-            content += totalI > limit ? "СТАТУС: ПРЕТОВАРЕНО (ИЗГОРЯЛ ПРЕДПАЗИТЕЛ)" : "СТАТУС: БЕЗОПАСНО";
-
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'schema_staya.txt';
-            a.click();
         }
 
-        function resetRoom() {
-            location.reload();
+        function calculatePhysics() {
+            let totalP = 0;
+            objects.forEach(o => { if(document.getElementById(o.id)) totalP += o.power; });
+            document.getElementById('stat-p').innerText = totalP + " W";
+            const current = totalP / voltage;
+            document.getElementById('stat-i').innerText = current.toFixed(2) + " A";
+            
+            if(current > 16) {
+                document.getElementById('stat-i').style.color = 'red';
+            } else {
+                document.getElementById('stat-i').style.color = '#f1c40f';
+            }
         }
+
+        function toggleWireMode() {
+            isWireMode = !isWireMode;
+            document.getElementById('viewport').classList.toggle('wire-mode-active');
+            document.getElementById('wire-btn').innerText = isWireMode ? "🔌 РЕЖИМ: КАБЕЛИ (ВКЛ.)" : "🔌 РЕЖИМ: КАБЕЛИ (ИЗКЛ.)";
+            document.getElementById('wire-btn').style.background = isWireMode ? "#e67e22" : "#3498db";
+        }
+
+        function clearRoom() { location.reload(); }
     </script>
 </body>
 </html>
