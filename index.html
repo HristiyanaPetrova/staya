@@ -5,18 +5,18 @@
     <title>STEM Инженер: Електрическо Проектиране 4.1 (€)</title>
     <style>
         :root { --bg: #f1f5f9; --dark: #0f172a; --accent: #3b82f6; --danger: #ef4444; --warning: #f59e0b; --success: #10b981; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; color: var(--dark); }
         
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 10px 20px; border-radius: 12px; margin-bottom: 15px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--dark); color: white; padding: 10px 20px; border-radius: 12px; margin-bottom: 15px; flex-shrink: 0; }
         .main-container { display: grid; grid-template-columns: 320px 1fr; gap: 15px; flex: 1; min-height: 0; }
         
         .sidebar { background: white; border-radius: 15px; padding: 15px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        .house { display: grid; grid-template-rows: 1fr 1fr; gap: 15px; }
+        .house { display: grid; grid-template-rows: 1fr 1fr; gap: 15px; overflow-y: auto; }
         
         .circuit-box { background: white; border-radius: 15px; border: 3px solid #e2e8f0; padding: 20px; position: relative; transition: all 0.3s; }
         .config-zone { border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         
-        .app-card { border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .app-card { border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; font-size: 13px; transition: 0.2s; background: #fff; }
         .app-card:hover { border-color: var(--accent); background: #eff6ff; transform: translateX(5px); }
         
         .device-icon { width: 65px; height: 65px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 20px; position: relative; cursor: pointer; }
@@ -26,7 +26,7 @@
         .on-fire { animation: burn 0.5s infinite alternate; border-color: var(--danger) !important; background: #fee2e2 !important; }
         @keyframes burn { from { box-shadow: 0 0 10px red; } to { box-shadow: 0 0 30px orange; } }
 
-        select { padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-size: 12px; }
+        select { padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; font-size: 12px; cursor: pointer; }
         .budget-box { font-size: 22px; font-weight: bold; color: var(--success); }
         .price-tag { color: #64748b; font-weight: normal; font-size: 11px; }
     </style>
@@ -43,4 +43,160 @@
 
 <div class="main-container">
     <div class="sidebar">
-        <h3 style="margin-top:
+        <h3 style="margin-top:0; font-size: 16px;">📦 Склад за уреди</h3>
+        <p style="font-size: 11px; color: #64748b; margin-bottom: 15px;">Изберете уред за инсталация:</p>
+        <div id="catalog"></div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <button onclick="location.reload()" style="width:100%; padding:10px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; cursor:pointer; font-weight: bold; color: #475569;">НУЛИРАЙ ПРОЕКТА</button>
+    </div>
+
+    <div class="house">
+        <div id="box-1" class="circuit-box">
+            <div class="config-zone">
+                <b style="color: var(--accent);">🔵 КРЪГ А:</b>
+                <select id="wire-1" onchange="updateSystem()">
+                    <option value="1.5">Кабел 1.5 mm² (13A) - 10 €</option>
+                    <option value="2.5">Кабел 2.5 mm² (20A) - 20 €</option>
+                    <option value="4.0">Кабел 4.0 mm² (28A) - 35 €</option>
+                </select>
+                <select id="fuse-1" onchange="updateSystem()">
+                    <option value="10">Предпазител 10A - 3 €</option>
+                    <option value="16">Предпазител 16A - 3 €</option>
+                    <option value="25">Предпазител 25A - 5 €</option>
+                    <option value="32">Предпазител 32A - 5 €</option>
+                </select>
+                <span id="status-1" class="status-tag">СИСТЕМАТА Е OK</span>
+            </div>
+            <div id="grid-1" class="device-grid"></div>
+            <div style="margin-top:15px; font-size:13px; color:#475569; background: #f8fafc; padding: 8px; border-radius: 8px; display: inline-block;">
+                Товар: <b id="i-1">0.00</b> A | Мощност: <b id="p-1">0</b> W
+            </div>
+        </div>
+
+        <div id="box-2" class="circuit-box">
+            <div class="config-zone">
+                <b style="color: var(--accent);">🟠 КРЪГ Б:</b>
+                <select id="wire-2" onchange="updateSystem()">
+                    <option value="1.5">Кабел 1.5 mm² (13A) - 10 €</option>
+                    <option value="2.5">Кабел 2.5 mm² (20A) - 20 €</option>
+                    <option value="4.0">Кабел 4.0 mm² (28A) - 35 €</option>
+                </select>
+                <select id="fuse-2" onchange="updateSystem()">
+                    <option value="10">Предпазител 10A - 3 €</option>
+                    <option value="16">Предпазител 16A - 3 €</option>
+                    <option value="25">Предпазител 25A - 5 €</option>
+                    <option value="32">Предпазител 32A - 5 €</option>
+                </select>
+                <span id="status-2" class="status-tag">СИСТЕМАТА Е OK</span>
+            </div>
+            <div id="grid-2" class="device-grid"></div>
+            <div style="margin-top:15px; font-size:13px; color:#475569; background: #f8fafc; padding: 8px; border-radius: 8px; display: inline-block;">
+                Товар: <b id="i-2">0.00</b> A | Мощност: <b id="p-2">0</b> W
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const U = 220;
+    const INITIAL_BUDGET = 250;
+    const appliances = [
+        { name: "Готварска печка", icon: "🔥", p: 3200, price: 60 },
+        { name: "Бойлер", icon: "🚿", p: 2500, price: 50 },
+        { name: "Климатик", icon: "❄️", p: 1800, price: 75 },
+        { name: "Пералня", icon: "🧺", p: 2200, price: 45 },
+        { name: "Ел. кана", icon: "🫖", p: 2000, price: 15 },
+        { name: "Компютър", icon: "🖥️", p: 500, price: 20 },
+        { name: "Ютия", icon: "🧶", p: 1500, price: 10 }
+    ];
+
+    let circuits = { 1: [], 2: [] };
+
+    function init() {
+        const cat = document.getElementById('catalog');
+        cat.innerHTML = '';
+        appliances.forEach((a, i) => {
+            cat.innerHTML += `
+                <div class="app-card" onclick="add(${i})">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b>${a.icon} ${a.name}</b>
+                        <b style="color:#3b82f6">${a.price} €</b>
+                    </div>
+                    <div class="price-tag">${a.p}W | ~${(a.p/U).toFixed(1)}A</div>
+                </div>
+            `;
+        });
+        updateSystem();
+    }
+
+    function add(idx) {
+        const app = {...appliances[idx], uid: Date.now()};
+        if(circuits[1].length <= circuits[2].length) circuits[1].push(app);
+        else circuits[2].push(app);
+        updateSystem();
+    }
+
+    function remove(cNum, uid) {
+        circuits[cNum] = circuits[cNum].filter(a => a.uid !== uid);
+        updateSystem();
+    }
+
+    function updateSystem() {
+        let currentBudget = INITIAL_BUDGET;
+        
+        [1, 2].forEach(n => {
+            const wireSec = parseFloat(document.getElementById('wire-'+n).value);
+            const fuseVal = parseInt(document.getElementById('fuse-'+n).value);
+            const grid = document.getElementById('grid-'+n);
+            const box = document.getElementById('box-'+n);
+            const status = document.getElementById('status-'+n);
+            
+            if(wireSec == 1.5) currentBudget -= 10;
+            else if(wireSec == 2.5) currentBudget -= 20;
+            else if(wireSec == 4.0) currentBudget -= 35;
+            
+            currentBudget -= (fuseVal > 20 ? 5 : 3);
+
+            grid.innerHTML = '';
+            let p = 0;
+            circuits[n].forEach(a => {
+                p += a.p;
+                currentBudget -= a.price;
+                grid.innerHTML += `
+                    <div class="device-icon" onclick="remove(${n}, ${a.uid})">
+                        ${a.icon}
+                        <span style="font-size:8px; color:#64748b;">${a.p}W</span>
+                        <div style="position:absolute; top:-5px; right:-5px; background:red; color:white; border-radius:50%; width:14px; height:14px; font-size:9px; display:flex; align-items:center; justify-content:center;">✕</div>
+                    </div>`;
+            });
+
+            let i = p / U;
+            document.getElementById('i-'+n).innerText = i.toFixed(2);
+            document.getElementById('p-'+n).innerText = p;
+
+            const wireLimit = wireSec === 1.5 ? 13 : (wireSec === 2.5 ? 20 : 28);
+            
+            box.classList.remove('on-fire');
+            if (i > fuseVal) {
+                status.innerText = "🚨 БУШОНЪТ ИЗКЛЮЧИ";
+                status.style.background = "#f59e0b";
+            } else if (i > wireLimit) {
+                status.innerText = "🔥 ОПАСНОСТ: ПОЖАР!";
+                status.style.background = "#ef4444";
+                box.classList.add('on-fire');
+            } else {
+                status.innerText = "✅ СИСТЕМАТА Е OK";
+                status.style.background = "#10b981";
+            }
+        });
+
+        const budgetEl = document.getElementById('budget');
+        budgetEl.innerText = currentBudget;
+        budgetEl.style.color = currentBudget < 0 ? "#ef4444" : "#10b981";
+    }
+
+    // Стартиране
+    window.onload = init;
+</script>
+</body>
+</html>
