@@ -2,86 +2,103 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Инженер 2.1: Свързване на вериги</title>
+    <title>STEM Инженер 2.2: Професионално проектиране</title>
     <style>
-        :root { --bg: #fdf6e3; --panel: #eee8d5; --accent: #268bd2; --text: #073642; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        :root { --bg: #f0f2f5; --panel: #ffffff; --accent: #2563eb; --text: #1e293b; --danger: #ef4444; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
         
-        .layout { display: flex; gap: 20px; width: 100%; max-width: 1400px; height: 80vh; }
+        .layout { display: flex; gap: 20px; width: 100%; max-width: 1400px; height: 75vh; }
         
         #viewport { 
-            flex: 3; background: #fff; border: 3px solid var(--panel); border-radius: 15px; 
-            position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            flex: 3; background: #cbd5e1; border-radius: 20px; position: relative; 
+            overflow: hidden; box-shadow: inset 0 0 50px rgba(0,0,0,0.1); border: 4px solid #94a3b8;
         }
 
-        /* Помощен панел */
+        /* 3D стая визуализация */
+        .room-base {
+            position: absolute; width: 80%; height: 70%; top: 15%; left: 10%;
+            background: #f8fafc; transform: perspective(1000px) rotateX(20deg);
+            border: 2px solid #94a3b8; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
         .help-box { 
-            position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); 
-            padding: 10px; border-radius: 8px; border-left: 5px solid var(--accent); font-size: 13px; z-index: 100;
+            position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.9); 
+            padding: 12px; border-radius: 12px; border-left: 6px solid var(--accent); 
+            font-size: 13px; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        .sidebar { flex: 1; background: var(--panel); padding: 20px; border-radius: 15px; overflow-y: auto; }
+        .sidebar { flex: 1; background: var(--panel); padding: 20px; border-radius: 20px; overflow-y: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
         .item-btn { 
-            width: 100%; padding: 12px; margin-bottom: 8px; border: none; border-radius: 8px; 
-            background: #fff; cursor: pointer; display: flex; align-items: center; transition: 0.2s;
+            width: 100%; padding: 14px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 12px; 
+            background: #fff; cursor: pointer; display: flex; align-items: center; transition: all 0.2s;
         }
-        .item-btn:hover { background: #eee; transform: translateX(5px); }
-        .item-btn b { font-size: 24px; margin-right: 15px; }
+        .item-btn:hover { border-color: var(--accent); background: #f1f5f9; transform: translateY(-2px); }
+        .item-btn b { font-size: 28px; margin-right: 15px; }
 
-        .placed-obj { position: absolute; cursor: move; z-index: 20; text-align: center; }
-        .placed-obj .icon { font-size: 55px; }
-        .placed-obj .tag { background: var(--text); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+        .placed-obj { 
+            position: absolute; cursor: grab; z-index: 20; text-align: center; 
+            padding: 10px; transition: transform 0.1s;
+        }
+        .placed-obj:active { cursor: grabbing; }
+        .placed-obj .icon { font-size: 65px; filter: drop-shadow(0 10px 8px rgba(0,0,0,0.1)); }
+        .placed-obj .tag { background: var(--text); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: 12px; margin-top: 5px; font-weight: bold; }
 
         #cable-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         
         .hud { 
-            width: 100%; max-width: 1400px; background: var(--text); color: #fff; 
-            margin-top: 15px; padding: 20px; border-radius: 12px; display: flex; justify-content: space-around;
+            width: 100%; max-width: 1400px; background: #0f172a; color: #fff; 
+            margin-top: 20px; padding: 25px; border-radius: 20px; display: flex; justify-content: space-around;
         }
-        .hud b { color: #f1c40f; font-size: 22px; }
+        .hud-item { text-align: center; }
+        .hud-item label { display: block; font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+        .hud-item b { color: #fbbf24; font-size: 32px; }
 
-        .wire-mode { cursor: crosshair; }
-        .selected { filter: drop-shadow(0 0 10px orange); }
+        .wire-mode { cursor: crosshair !important; background: #e0f2fe !important; }
+        .selected { transform: scale(1.1); filter: drop-shadow(0 0 15px #3b82f6); }
     </style>
 </head>
 <body>
 
-    <h2>⚡ Проектиране на електрическа верига в 7. клас</h2>
+    <h2 style="color: var(--text); margin: 10px 0;">⚡ STEM Инженер: Електрически мрежи</h2>
 
     <div class="layout">
         <div id="viewport">
             <div class="help-box">
-                <strong>Как се работи:</strong><br>
-                1. Сложи <b>Контакт</b> 🔲.<br>
-                2. Сложи <b>Уред</b> (напр. Печка 🔥).<br>
-                3. Натисни <b>СВЪРЖИ КАБЕЛИ</b>.<br>
-                4. Кликни върху Уреда, после върху Контакта.
+                <b>💡 Инструкция:</b><br>
+                1. Добави <b>Контакт</b> 🔲 и <b>Уреди</b> 🖥️<br>
+                2. Подреди ги в стаята (влачи с мишката)<br>
+                3. Натисни <b>СВЪРЖИ КАБЕЛИ</b><br>
+                4. Кликни Уреда + Кликни Контакта
             </div>
+            <div class="room-base"></div>
             <svg id="cable-layer"></svg>
         </div>
 
         <div class="sidebar">
-            <button id="wire-btn" onclick="toggleWireMode()" style="width:100%; padding:15px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:20px;">🔌 СВЪРЖИ КАБЕЛИ (ИЗКЛ.)</button>
+            <button id="wire-btn" onclick="toggleWireMode()" style="width:100%; padding:18px; background:var(--accent); color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer; margin-bottom:20px; font-size: 16px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);">🔌 СВЪРЖИ КАБЕЛИ (ИЗКЛ.)</button>
             
-            <p><b>Източници:</b></p>
+            <p style="font-weight: bold; font-size: 14px; color: #64748b;">МРЕЖА:</p>
             <button class="item-btn" onclick="spawn('🔲', 'Контакт', 0)"><b>🔲</b> Контакт (220V)</button>
             
-            <p><b>Консуматори:</b></p>
+            <p style="font-weight: bold; font-size: 14px; color: #64748b;">КОНСУМАТОРИ:</p>
             <button class="item-btn" onclick="spawn('🖥️', 'Компютър', 500)"><b>🖥️</b> Компютър (500W)</button>
             <button class="item-btn" onclick="spawn('🔥', 'Печка', 2200)"><b>🔥</b> Печка (2200W)</button>
             <button class="item-btn" onclick="spawn('💡', 'Лампа', 60)"><b>💡</b> Лампа (60W)</button>
             <button class="item-btn" onclick="spawn('❄️', 'Хладилник', 1000)"><b>❄️</b> Хладилник (1000W)</button>
+            <button class="item-btn" onclick="spawn('📺', 'Телевизор', 150)"><b>📺</b> Телевизор (150W)</button>
             
-            <button onclick="location.reload()" style="margin-top:30px; width:100%; padding:10px; background:#dc322f; color:white; border:none; border-radius:5px; cursor:pointer;">ИЗЧИСТИ ВСИЧКО</button>
+            <button onclick="location.reload()" style="margin-top:20px; width:100%; padding:12px; background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0; border-radius:12px; cursor:pointer; font-weight: 500;">НУЛИРАЙ ПРОЕКТА</button>
         </div>
     </div>
 
     <div class="hud">
-        <div>Обща Мощност: <b id="p-val">0 W</b></div>
-        <div>Ток в мрежата (I): <b id="i-val">0.00 A</b></div>
-        <div>Напрежение (U): <b>220 V</b></div>
-        <div>Предпазител: <b>16 A</b></div>
+        <div class="hud-item"><label>Обща Мощност</label><b id="p-val">0 W</b></div>
+        <div class="hud-item"><label>Големина на тока (I)</label><b id="i-val">0.00 A</b></div>
+        <div class="hud-item"><label>Напрежение (U)</label><b>220 V</b></div>
+        <div class="hud-item"><label>Предпазител</label><b>16 A</b></div>
     </div>
 
     <script>
@@ -95,7 +112,14 @@
             const div = document.createElement('div');
             div.className = 'placed-obj';
             div.id = id;
-            div.style.left = '50px'; div.style.top = '150px';
+
+            // Генериране на случайно място, за да не се застъпват
+            const rect = document.getElementById('viewport').getBoundingClientRect();
+            const randomX = Math.random() * (rect.width - 150) + 50;
+            const randomY = Math.random() * (rect.height - 150) + 50;
+            
+            div.style.left = randomX + 'px';
+            div.style.top = randomY + 'px';
             div.innerHTML = `<div class="icon">${icon}</div><div class="tag">${name}</div>`;
             
             div.onmousedown = (e) => {
@@ -103,10 +127,13 @@
                     handleWire(id);
                     return;
                 }
-                let rect = document.getElementById('viewport').getBoundingClientRect();
+                const rectVP = document.getElementById('viewport').getBoundingClientRect();
+                const shiftX = e.clientX - div.getBoundingClientRect().left;
+                const shiftY = e.clientY - div.getBoundingClientRect().top;
+
                 document.onmousemove = (e) => {
-                    div.style.left = (e.clientX - rect.left - 25) + 'px';
-                    div.style.top = (e.clientY - rect.top - 25) + 'px';
+                    div.style.left = (e.clientX - rectVP.left - shiftX) + 'px';
+                    div.style.top = (e.clientY - rectVP.top - shiftY) + 'px';
                     drawWires();
                 };
                 document.onmouseup = () => document.onmousemove = null;
@@ -122,9 +149,13 @@
                 document.getElementById(id).classList.add('selected');
             } else {
                 if(firstClick !== id) {
-                    connections.push([firstClick, id]);
-                    drawWires();
-                    updatePhysics();
+                    // Проверка дали вече съществува такава връзка
+                    const exists = connections.some(c => (c[0] === firstClick && c[1] === id) || (c[0] === id && c[1] === firstClick));
+                    if(!exists) {
+                        connections.push([firstClick, id]);
+                        drawWires();
+                        updatePhysics();
+                    }
                 }
                 document.getElementById(firstClick).classList.remove('selected');
                 firstClick = null;
@@ -139,12 +170,14 @@
                 const el2 = document.getElementById(conn[1]);
                 if(el1 && el2) {
                     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                    line.setAttribute("x1", parseInt(el1.style.left) + 30);
-                    line.setAttribute("y1", parseInt(el1.style.top) + 30);
-                    line.setAttribute("x2", parseInt(el2.style.left) + 30);
-                    line.setAttribute("y2", parseInt(el2.style.top) + 30);
-                    line.setAttribute("stroke", "#444");
-                    line.setAttribute("stroke-width", "4");
+                    // Свързваме центровете на обектите
+                    line.setAttribute("x1", parseInt(el1.style.left) + 40);
+                    line.setAttribute("y1", parseInt(el1.style.top) + 40);
+                    line.setAttribute("x2", parseInt(el2.style.left) + 40);
+                    line.setAttribute("y2", parseInt(el2.style.top) + 40);
+                    line.setAttribute("stroke", "#334155");
+                    line.setAttribute("stroke-width", "5");
+                    line.setAttribute("stroke-linecap", "round");
                     svg.appendChild(line);
                 }
             });
@@ -152,10 +185,10 @@
 
         function updatePhysics() {
             let activePower = 0;
-            // Логика: Уредът хаби ток само ако е свързан към контакт
             connections.forEach(conn => {
                 const c1 = components.find(c => c.id === conn[0]);
                 const c2 = components.find(c => c.id === conn[1]);
+                // Ако единият е консуматор, а другият източник
                 if((c1.type === 'load' && c2.type === 'source') || (c1.type === 'source' && c2.type === 'load')) {
                     activePower += (c1.power + c2.power);
                 }
@@ -166,10 +199,10 @@
             document.getElementById('i-val').innerText = current.toFixed(2) + " A";
             
             if(current > 16) {
-                document.getElementById('i-val').style.color = '#dc322f';
-                alert("💥 ПРЕТОВАРВАНЕ! Предпазителят падна!");
+                document.getElementById('i-val').style.color = '#ef4444';
+                setTimeout(() => alert("⚠️ ПРЕТОВАРВАНЕ! Токът надвиши 16 Ампера. Предпазителят се изключи."), 100);
             } else {
-                document.getElementById('i-val').style.color = '#f1c40f';
+                document.getElementById('i-val').style.color = '#fbbf24';
             }
         }
 
@@ -177,7 +210,11 @@
             wireMode = !wireMode;
             document.getElementById('viewport').classList.toggle('wire-mode');
             document.getElementById('wire-btn').innerText = wireMode ? "🔌 РЕЖИМ: КАБЕЛИ (ВКЛ.)" : "🔌 СВЪРЖИ КАБЕЛИ (ИЗКЛ.)";
-            document.getElementById('wire-btn').style.background = wireMode ? "#859900" : "#268bd2";
+            document.getElementById('wire-btn').style.background = wireMode ? "#10b981" : "#2563eb";
+            if(!wireMode && firstClick) {
+                document.getElementById(firstClick).classList.remove('selected');
+                firstClick = null;
+            }
         }
     </script>
 </body>
