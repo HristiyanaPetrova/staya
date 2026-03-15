@@ -2,114 +2,90 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Архитект: Стабилна Версия</title>
+    <title>STEM Архитект: Електричество</title>
     <style>
-        /* Модерен, но лек интерфейс */
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #0f172a; 
-            color: white; 
-            margin: 0; padding: 10px; 
-            display: flex; flex-direction: column; 
-            height: 100vh; overflow: hidden; 
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        .header { background: #1e293b; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border: 1px solid #334155; }
+        
+        .main-layout { display: flex; gap: 15px; flex: 1; min-height: 0; }
 
-        .header { 
-            background: #1e293b; padding: 10px 15px; 
-            border-radius: 10px; display: flex; 
-            justify-content: space-between; align-items: center; 
-            margin-bottom: 10px; border: 1px solid #334155;
-        }
-
-        .main-layout { display: flex; gap: 10px; flex: 1; min-height: 0; }
-
-        .sidebar { 
-            width: 220px; background: #1e293b; padding: 10px; 
-            border-radius: 10px; overflow-y: auto; border: 1px solid #334155;
-        }
-
+        /* Склад */
+        .sidebar { width: 230px; background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155; overflow-y: auto; }
         .source-item { 
-            background: #334155; padding: 10px; border-radius: 6px; 
-            margin-bottom: 8px; cursor: grab; font-size: 13px; 
-            border: 1px solid #475569; transition: 0.2s;
+            background: #334155; padding: 12px; border-radius: 8px; margin-bottom: 10px; 
+            cursor: grab; font-size: 14px; border: 1px solid #475569; transition: 0.2s;
+            user-select: none; /* Предотвратява маркиране на текст при влачене */
         }
-        .source-item:hover { background: #3b82f6; border-color: #60a5fa; }
+        .source-item:hover { background: #3b82f6; transform: translateX(5px); }
+        .source-item:active { cursor: grabbing; }
 
-        .rooms-container { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-
+        /* Стаи */
+        .rooms-container { flex: 1; display: flex; flex-direction: column; gap: 15px; }
         .room { 
-            background: #1e293b; border: 2px solid #334155; 
-            border-radius: 12px; position: relative; flex: 1; 
-            background-image: radial-gradient(#2d3748 1px, transparent 1px);
-            background-size: 20px 20px;
+            background: #1e293b; border: 2px dashed #475569; border-radius: 15px; 
+            position: relative; flex: 1; transition: all 0.3s;
+            background-image: radial-gradient(#2d3748 1px, transparent 1px); background-size: 25px 25px;
         }
+        /* Ефект при влачене над стаята */
+        .room.drag-over { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.2); }
 
-        .room-label { 
-            position: absolute; top: 10px; left: 15px; 
-            font-weight: bold; color: #60a5fa; font-size: 14px;
-        }
+        .room-label { position: absolute; top: 12px; left: 15px; font-weight: bold; color: #60a5fa; text-transform: uppercase; letter-spacing: 1px; }
 
         .placed-item { 
-            position: absolute; width: 50px; height: 50px; 
-            background: #0f172a; border: 2px solid #3b82f6; 
-            border-radius: 10px; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; font-size: 20px;
+            position: absolute; width: 55px; height: 55px; background: #0f172a; 
+            border: 2px solid #3b82f6; border-radius: 12px; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center; 
+            font-size: 22px; cursor: move; z-index: 10;
         }
-        .placed-item small { font-size: 8px; color: #94a3b8; }
+        .placed-item small { font-size: 9px; color: #94a3b8; margin-top: 2px; }
 
         .remove-btn { 
-            position: absolute; top: -8px; right: -8px; 
-            background: #ef4444; color: white; border-radius: 50%; 
-            width: 18px; height: 18px; font-size: 10px; 
-            cursor: pointer; text-align: center; line-height: 18px;
+            position: absolute; top: -10px; right: -10px; background: #ef4444; 
+            color: white; border-radius: 50%; width: 20px; height: 20px; 
+            font-size: 12px; cursor: pointer; display: flex; align-items: center; 
+            justify-content: center; border: 2px solid #1e293b;
         }
 
         .overload-msg { 
-            position: absolute; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); background: #ef4444; 
-            color: white; padding: 10px 20px; border-radius: 20px; 
-            font-weight: bold; display: none; z-index: 100;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #ef4444; color: white; padding: 12px 25px; border-radius: 30px; 
+            font-weight: bold; display: none; z-index: 100; box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
         }
 
-        .status-info { position: absolute; bottom: 8px; right: 15px; font-size: 12px; font-weight: bold; color: #10b981; }
-        .danger { border-color: #ef4444 !important; }
+        .status-info { position: absolute; bottom: 12px; right: 15px; font-size: 13px; font-weight: bold; color: #10b981; background: rgba(15, 23, 42, 0.7); padding: 5px 10px; border-radius: 8px; }
+        .danger { border-color: #ef4444 !important; border-style: solid; }
 
-        input, select, button { 
-            background: #0f172a; color: white; border: 1px solid #475569; 
-            padding: 6px; border-radius: 5px; font-size: 13px;
-        }
-        button { cursor: pointer; background: #3b82f6; border: none; padding: 8px 15px; }
-        button:hover { background: #2563eb; }
+        select, input, button { background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; }
+        button { cursor: pointer; background: #3b82f6; border: none; font-weight: bold; transition: 0.2s; }
+        button:hover { background: #2563eb; transform: scale(1.05); }
 
-        /* Секция за печат */
-        #print-section { display: none; color: black; padding: 20px; font-family: sans-serif; }
-        #print-section table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        #print-section th, #print-section td { border: 1px solid #000; padding: 8px; text-align: left; }
-
+        /* Печат */
+        #print-section { display: none; color: black; padding: 30px; }
         @media print {
             body * { display: none !important; }
             #print-section, #print-section * { display: block !important; }
-            #print-section table { display: table !important; }
-            #print-section tr, #print-section td, #print-section th { display: table-cell !important; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid black; padding: 10px; text-align: left; }
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div>
-        <input type="text" id="studentName" placeholder="Име на ученика..." oninput="updatePrintName()">
-        <span style="margin-left:20px;">💰 Бюджет: <b id="budget" style="color:#10b981;">250</b>€</span>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <input type="text" id="studentName" placeholder="Име на проектанта..." oninput="document.getElementById('p-name').innerText = this.value">
+        <div style="font-size:16px;">💰 Бюджет: <b id="budget" style="color:#10b981;">250</b>€</div>
     </div>
     <div style="display:flex; gap:10px;">
-        <button onclick="window.print()">🖨️ ПЕЧАТ НА РЕЗЮМЕ</button>
+        <button onclick="window.print()">🖨️ ПЕЧАТ НА ОТЧЕТ</button>
         <button onclick="location.reload()" style="background:#475569;">🔄 НУЛИРАЙ</button>
     </div>
 </div>
 
 <div class="main-layout">
     <div class="sidebar">
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:15px;">Плъзни уред в стая:</p>
         <div class="source-item" draggable="true" ondragstart="drag(event, '🔥', 3000, 60, 'Печка')">🔥 Печка (3kW)</div>
         <div class="source-item" draggable="true" ondragstart="drag(event, '🚿', 2500, 55, 'Бойлер')">🚿 Бойлер (2.5)</div>
         <div class="source-item" draggable="true" ondragstart="drag(event, '🫖', 2000, 15, 'Кана')">🫖 Кана (2kW)</div>
@@ -121,20 +97,26 @@
     </div>
 
     <div class="rooms-container">
-        <div id="room-1" class="room" ondrop="drop(event, 1)" ondragover="allowDrop(event)">
+        <div id="room-1" class="room" 
+             ondragover="handleDragOver(event)" 
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="handleDrop(event, 1)">
             <div class="room-label">🥘 КУХНЯ</div>
             <div id="warn-1" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
-            <div style="position:absolute; top:10px; right:15px;">
+            <div style="position:absolute; top:12px; right:15px; display:flex; gap:8px;">
                 <select id="w-1" onchange="calc()"><option value="13">1.5mm²</option><option value="20" selected>2.5mm²</option></select>
                 <select id="f-1" onchange="calc()"><option value="10">10A</option><option value="16" selected>16A</option></select>
             </div>
             <div class="status-info" id="status-1">0A | 0W</div>
         </div>
 
-        <div id="room-2" class="room" ondrop="drop(event, 2)" ondragover="allowDrop(event)">
+        <div id="room-2" class="room" 
+             ondragover="handleDragOver(event)" 
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="handleDrop(event, 2)">
             <div class="room-label">🛋️ ДНЕВНА</div>
-            <div id="warn-2" class="overload-msg">⚠️ МРЕЖАТА Е ПРЕТОВАРЕНА!</div>
-            <div style="position:absolute; top:10px; right:15px;">
+            <div id="warn-2" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
+            <div style="position:absolute; top:12px; right:15px; display:flex; gap:8px;">
                 <select id="w-2" onchange="calc()"><option value="13" selected>1.5mm²</option><option value="20">2.5mm²</option></select>
                 <select id="f-2" onchange="calc()"><option value="10" selected>10A</option><option value="16">16A</option></select>
             </div>
@@ -144,59 +126,80 @@
 </div>
 
 <div id="print-section">
-    <h2>STEM Отчет: Електрически Проект</h2>
-    <p><strong>Проектант:</strong> <span id="print-name-field">---</span></p>
-    <table>
+    <h2>ОТЧЕТ: ЕЛЕКТРИЧЕСКА ИНСТАЛАЦИЯ</h2>
+    <p>Проектант: <strong id="p-name">---</strong></p>
+    <table id="p-table">
         <thead>
             <tr><th>Стая</th><th>Уреди</th><th>Мощност (W)</th><th>Ток (A)</th></tr>
         </thead>
-        <tbody id="print-table-body"></tbody>
+        <tbody id="p-body"></tbody>
     </table>
-    <p><strong>Оставащ бюджет:</strong> <span id="print-budget-field">250</span> €</p>
+    <p style="margin-top:20px;">Оставащ бюджет: <strong id="p-budget">250</strong> €</p>
 </div>
 
 <script>
     let placedDevices = { 1: [], 2: [] };
     let draggedData = null;
 
-    function allowDrop(ev) { ev.preventDefault(); }
-    
-    function drag(ev, icon, power, price, name) { 
-        draggedData = { icon, power, price, name }; 
+    // Инициализация на влаченето
+    function drag(ev, icon, power, price, name) {
+        draggedData = { icon, power, price, name };
+        // Ефект за визуализация при влачене
+        ev.dataTransfer.setData("text", name); 
     }
 
-    function drop(ev, roomNum) {
+    // Позволяване на пускането в полето
+    function handleDragOver(ev) {
+        ev.preventDefault(); // КРИТИЧНО: Позволява drop събитието
+        ev.currentTarget.classList.add('drag-over');
+    }
+
+    // Изпълнение на пускането
+    function handleDrop(ev, roomNum) {
         ev.preventDefault();
-        const rect = ev.currentTarget.getBoundingClientRect();
-        const x = ev.clientX - rect.left - 25;
-        const y = ev.clientY - rect.top - 25;
-        placedDevices[roomNum].push({ ...draggedData, id: Date.now(), x, y });
-        renderRoom(roomNum);
-        calc();
+        const roomEl = ev.currentTarget;
+        roomEl.classList.remove('drag-over');
+
+        const rect = roomEl.getBoundingClientRect();
+        const x = ev.clientX - rect.left - 27;
+        const y = ev.clientY - rect.top - 27;
+
+        if (draggedData) {
+            placedDevices[roomNum].push({ ...draggedData, id: Date.now(), x, y });
+            renderRoom(roomNum);
+            calc();
+        }
     }
 
     function renderRoom(num) {
         const roomEl = document.getElementById('room-' + num);
+        // Премахваме само уредите, не и етикетите/контролите
         roomEl.querySelectorAll('.placed-item').forEach(el => el.remove());
+
         placedDevices[num].forEach(dev => {
             const div = document.createElement('div');
             div.className = 'placed-item';
-            div.style.left = dev.x + 'px'; div.style.top = dev.y + 'px';
-            div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(${num}, ${dev.id})">×</div>`;
+            div.style.left = dev.x + 'px';
+            div.style.top = dev.y + 'px';
+            div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(event, ${num}, ${dev.id})">×</div>`;
+            
+            // Възможност за преместване след поставяне
             div.onmousedown = (e) => startMove(e, dev, num);
             roomEl.appendChild(div);
         });
     }
 
-    function removeItem(num, id) {
+    function removeItem(ev, num, id) {
+        ev.stopPropagation(); // Спира преместването при клик върху хикса
         placedDevices[num] = placedDevices[num].filter(d => d.id !== id);
-        renderRoom(num); 
+        renderRoom(num);
         calc();
     }
 
     function calc() {
         let budget = 250;
-        let tableRows = "";
+        let rows = "";
+
         for (let r = 1; r <= 2; r++) {
             const wire = parseInt(document.getElementById('w-' + r).value);
             const fuse = parseInt(document.getElementById('f-' + r).value);
@@ -204,13 +207,13 @@
             const warnEl = document.getElementById('warn-' + r);
             const roomEl = document.getElementById('room-' + r);
 
-            budget -= (wire === 13 ? 10 : 20); 
+            budget -= (wire === 13 ? 10 : 20); // Цена за кабел
             budget -= 5; // Цена за бушон
 
             let totalW = 0;
             let names = [];
-            placedDevices[r].forEach(d => { 
-                totalW += d.power; 
+            placedDevices[r].forEach(d => {
+                totalW += d.power;
                 budget -= d.price;
                 names.push(d.name);
             });
@@ -227,20 +230,28 @@
                 warnEl.style.display = 'none';
                 statusEl.style.color = "#10b981";
             }
-            tableRows += `<tr><td>${r===1?'Кухня':'Дневна'}</td><td>${names.join(', ') || '-'}</td><td>${totalW}</td><td>${amps.toFixed(1)}</td></tr>`;
+            rows += `<tr><td>${r===1?'Кухня':'Дневна'}</td><td>${names.join(', ') || '-'}</td><td>${totalW}W</td><td>${amps.toFixed(1)}A</td></tr>`;
         }
         document.getElementById('budget').innerText = budget;
-        document.getElementById('print-table-body').innerHTML = tableRows;
-        document.getElementById('print-budget-field').innerText = budget;
-    }
-
-    function updatePrintName() {
-        document.getElementById('print-name-field').innerText = document.getElementById('studentName').value || "---";
+        document.getElementById('p-body').innerHTML = rows;
+        document.getElementById('p-budget').innerText = budget;
     }
 
     function startMove(e, dev, num) {
         if (e.target.className === 'remove-btn') return;
         const roomEl = document.getElementById('room-' + num);
         const rect = roomEl.getBoundingClientRect();
+
         document.onmousemove = (m) => {
-            dev.x = m.clientX - rect.left - 25;
+            dev.x = m.clientX - rect.left - 27;
+            dev.y = m.clientY - rect.top - 27;
+            renderRoom(num);
+        };
+        document.onmouseup = () => {
+            document.onmousemove = null;
+            calc();
+        };
+    }
+</script>
+</body>
+</html>
