@@ -2,57 +2,36 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Архитект: Електрически Проект</title>
+    <title>STEM Архитект 5.0</title>
     <style>
-        :root {
-            --bg: #0f172a; --card-bg: #1e293b; --accent: #3b82f6;
-            --danger: #ef4444; --success: #10b981; --text: #f1f5f9;
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; margin: 0; padding: 15px; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Специфични стилове за печат */
-        @media print {
-            .sidebar, .controls-bar, button { display: none !important; }
-            body { background: white; color: black; }
-            .circuit-box { border: 2px solid #000 !important; page-break-inside: avoid; background: white !important; color: black !important; }
-            .load-bar-container { border: 1px solid #000; }
-        }
+        /* За печат */
+        @media print { .sidebar, .btns, select { display: none !important; } body { background: white; color: black; } .room { border: 2px solid black !important; background: white !important; color: black !important; } }
 
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 25px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px 25px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #334155; flex-shrink: 0; }
         .main-container { display: flex; gap: 20px; flex: 1; min-height: 0; }
         
-        .sidebar { width: 300px; background: var(--card-bg); border-radius: 15px; padding: 20px; overflow-y: auto; border: 1px solid #334155; }
+        .sidebar { width: 300px; background: #1e293b; border-radius: 15px; padding: 20px; overflow-y: auto; border: 1px solid #334155; }
         .house-canvas { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 20px; overflow-y: auto; padding-right: 10px; }
         
-        /* Стая стил */
-        .room { 
-            background: #2d3748; border-radius: 20px; border: 4px solid #4a5568; padding: 20px; 
-            position: relative; transition: 0.3s; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 20px 20px;
-        }
-        .room::before { content: "🪟"; position: absolute; top: -15px; left: 50%; font-size: 24px; background: var(--bg); padding: 0 10px; }
-        .room::after { content: "🚪"; position: absolute; bottom: -15px; left: 20px; font-size: 24px; background: var(--bg); padding: 0 5px; }
+        .room { background: #1e293b; border-radius: 20px; border: 3px solid #475569; padding: 20px; position: relative; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 20px 20px; }
+        .room-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-        .load-bar-container { width: 100%; height: 8px; background: #1a202c; border-radius: 4px; margin: 10px 0; overflow: hidden; }
-        .load-bar-fill { height: 100%; width: 0%; background: var(--success); transition: 0.5s; }
+        .load-bar { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; margin: 10px 0; overflow: hidden; }
+        .load-fill { height: 100%; width: 0%; background: #10b981; transition: 0.5s; }
 
-        .app-card { background: #334155; border: 1px solid #475569; padding: 10px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-        .app-card:hover { transform: scale(1.02); border-color: var(--accent); }
+        .app-card { background: #334155; border: 1px solid #475569; padding: 12px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .app-card:hover { border-color: #3b82f6; background: #475569; }
         
-        .device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 15px; min-height: 100px; }
-        .device-icon { 
-            width: 70px; height: 70px; background: rgba(15, 23, 42, 0.8); border: 2px solid #4a5568; 
-            border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            position: relative; cursor: pointer; animation: fadeIn 0.3s;
-        }
+        .device-grid { display: flex; flex-wrap: wrap; gap: 12px; min-height: 80px; }
+        .device-icon { width: 70px; height: 70px; background: #0f172a; border: 2px solid #475569; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; }
         
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; margin-left: 5px; }
-        .btn-print { background: var(--accent); color: white; }
-        .btn-reset { background: var(--danger); color: white; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .on-fire { animation: shake 0.2s infinite; border-color: var(--danger) !important; box-shadow: 0 0 20px var(--danger); }
-        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } 100% { transform: rotate(0deg); } }
+        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; margin-left: 5px; }
+        .on-fire { animation: shake 0.2s infinite; border-color: #ef4444 !important; box-shadow: 0 0 20px #ef4444; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(2px); } 75% { transform: translateX(-2px); } }
+        
+        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 5px; border-radius: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -60,6 +39,54 @@
 <div class="header">
     <div>
         <h2 style="margin:0;">🏠 STEM Архитект: Електрически План</h2>
-        <div id="budget-info" style="font-weight: bold;">Оставащ бюджет: <span id="budget">250</span> €</div>
+        <div style="font-weight: bold; color: #10b981; margin-top: 5px;">Оставащ бюджет: <span id="budget">250</span> €</div>
     </div>
-    <div class="controls-bar">
+    <div class="btns">
+        <button class="btn" style="background: #ef4444; color: white;" onclick="resetProject()">🧹 Нулиране</button>
+        <button class="btn" style="background: #3b82f6; color: white;" onclick="window.print()">🖨️ Отчет</button>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="sidebar">
+        <h3 style="margin-top:0;">📦 Склад</h3>
+        <div id="catalog"></div>
+    </div>
+
+    <div class="house-canvas">
+        <div id="box-1" class="room">
+            <div class="room-title">
+                <span style="color:#3b82f6">🥘 КУХНЯ</span>
+                <span id="status-1" style="font-size:12px; color:#10b981">OK</span>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <select id="wire-1" onchange="update()">
+                    <option value="1.5">Кабел 1.5mm² (13A)</option>
+                    <option value="2.5" selected>Кабел 2.5mm² (20A)</option>
+                    <option value="4.0">Кабел 4.0mm² (28A)</option>
+                </select>
+                <select id="fuse-1" onchange="update()">
+                    <option value="10">Бушон 10A</option>
+                    <option value="16" selected>Бушон 16A</option>
+                    <option value="25">Бушон 25A</option>
+                </select>
+            </div>
+            <div class="load-bar"><div id="bar-1" class="load-fill"></div></div>
+            <div id="grid-1" class="device-grid"></div>
+            <div style="font-size: 11px; margin-top: 10px; color: #94a3b8;" id="metrics-1">0A | 0W</div>
+        </div>
+
+        <div id="box-2" class="room">
+            <div class="room-title">
+                <span style="color:#f59e0b">🛋️ ДНЕВНА</span>
+                <span id="status-2" style="font-size:12px; color:#10b981">OK</span>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <select id="wire-2" onchange="update()">
+                    <option value="1.5" selected>Кабел 1.5mm² (13A)</option>
+                    <option value="2.5">Кабел 2.5mm² (20A)</option>
+                    <option value="4.0">Кабел 4.0mm² (28A)</option>
+                </select>
+                <select id="fuse-2" onchange="update()">
+                    <option value="10">Бушон 10A</option>
+                    <option value="16" selected>Бушон 16A</option>
