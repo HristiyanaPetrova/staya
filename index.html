@@ -2,189 +2,115 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Архитект 5.0</title>
+    <title>STEM Архитект 6.0</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; margin: 0; padding: 15px; color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        /* Базови стилове, които не блокират браузъра */
+        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; }
+        .header { background: #1e293b; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #334155; }
+        .content { display: flex; gap: 20px; flex: 1; overflow: hidden; }
         
-        /* За печат */
-        @media print { .sidebar, .btns, select { display: none !important; } body { background: white; color: black; } .room { border: 2px solid black !important; background: white !important; color: black !important; } }
-
-        .header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px 25px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #334155; flex-shrink: 0; }
-        .main-container { display: flex; gap: 20px; flex: 1; min-height: 0; }
+        .sidebar { width: 250px; background: #1e293b; padding: 15px; border-radius: 10px; overflow-y: auto; border: 1px solid #334155; }
+        .main { flex: 1; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
         
-        .sidebar { width: 300px; background: #1e293b; border-radius: 15px; padding: 20px; overflow-y: auto; border: 1px solid #334155; }
-        .house-canvas { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 20px; overflow-y: auto; padding-right: 10px; }
+        .room { background: #1e293b; border: 3px solid #475569; border-radius: 15px; padding: 15px; min-height: 200px; }
+        .room-title { color: #3b82f6; font-size: 20px; font-weight: bold; margin-bottom: 10px; }
         
-        .room { background: #1e293b; border-radius: 20px; border: 3px solid #475569; padding: 20px; position: relative; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 20px 20px; }
-        .room-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-
-        .load-bar { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; margin: 10px 0; overflow: hidden; }
-        .load-fill { height: 100%; width: 0%; background: #10b981; transition: 0.5s; }
-
-        .app-card { background: #334155; border: 1px solid #475569; padding: 12px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
-        .app-card:hover { border-color: #3b82f6; background: #475569; }
+        .card { background: #334155; padding: 10px; margin-bottom: 10px; border-radius: 5px; cursor: pointer; border: 1px solid #475569; }
+        .card:hover { background: #475569; border-color: #3b82f6; }
         
-        .device-grid { display: flex; flex-wrap: wrap; gap: 12px; min-height: 80px; }
-        .device-icon { width: 70px; height: 70px; background: #0f172a; border: 2px solid #475569; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; }
+        .item { display: inline-block; width: 60px; height: 60px; background: #0f172a; border: 1px solid #3b82f6; border-radius: 10px; text-align: center; margin: 5px; padding: 5px; font-size: 25px; cursor: pointer; }
         
-        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; margin-left: 5px; }
-        .on-fire { animation: shake 0.2s infinite; border-color: #ef4444 !important; box-shadow: 0 0 20px #ef4444; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(2px); } 75% { transform: translateX(-2px); } }
+        .status { padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 14px; margin-top: 10px; display: inline-block; }
+        .ok { background: #10b981; color: white; }
+        .warn { background: #ef4444; color: white; animation: shake 0.2s infinite; }
         
-        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 5px; border-radius: 5px; font-size: 12px; }
+        @keyframes shake { 0% { transform: translate(1px); } 50% { transform: translate(-1px); } 100% { transform: translate(1px); } }
+        button { padding: 10px; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div>
-        <h2 style="margin:0;">🏠 STEM Архитект: Електрически План</h2>
-        <div style="font-weight: bold; color: #10b981; margin-top: 5px;">Оставащ бюджет: <span id="budget">250</span> €</div>
-    </div>
-    <div class="btns">
-        <button class="btn" style="background: #ef4444; color: white;" onclick="resetProject()">🧹 Нулиране</button>
-        <button class="btn" style="background: #3b82f6; color: white;" onclick="window.print()">🖨️ Отчет</button>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h2 style="margin:0;">🏠 STEM Архитект: Електрически План</h2>
+            <p style="margin:5px 0 0 0; color:#10b981;">Бюджет: <span id="budgetDisplay">250</span> €</p>
+        </div>
+        <div>
+            <button style="background:#ef4444; color:white;" onclick="location.reload()">🧹 Нулирай</button>
+            <button style="background:#3b82f6; color:white; margin-left:10px;" onclick="window.print()">🖨️ Печат</button>
+        </div>
     </div>
 </div>
 
-<div class="main-container">
+<div class="content">
     <div class="sidebar">
         <h3 style="margin-top:0;">📦 Склад</h3>
         <div id="catalog"></div>
     </div>
 
-    <div class="house-canvas">
-        <div id="box-1" class="room">
-            <div class="room-title">
-                <span style="color:#3b82f6">🥘 КУХНЯ</span>
-                <span id="status-1" style="font-size:12px; color:#10b981">OK</span>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <select id="wire-1" onchange="update()">
-                    <option value="1.5">Кабел 1.5mm² (13A)</option>
-                    <option value="2.5" selected>Кабел 2.5mm² (20A)</option>
-                    <option value="4.0">Кабел 4.0mm² (28A)</option>
+    <div class="main">
+        <div class="room" id="room1">
+            <div class="room-title">🥘 КУХНЯ</div>
+            <div style="margin-bottom:15px;">
+                <select id="wire1" onchange="update()">
+                    <option value="13">Кабел 1.5mm² (13A) - 10€</option>
+                    <option value="20" selected>Кабел 2.5mm² (20A) - 20€</option>
                 </select>
-                <select id="fuse-1" onchange="update()">
-                    <option value="10">Бушон 10A</option>
-                    <option value="16" selected>Бушон 16A</option>
-                    <option value="25">Бушон 25A</option>
+                <select id="fuse1" onchange="update()">
+                    <option value="10">Бушон 10A - 5€</option>
+                    <option value="16" selected>Бушон 16A - 5€</option>
                 </select>
             </div>
-            <div class="load-bar"><div id="bar-1" class="load-fill"></div></div>
-            <div id="grid-1" class="device-grid"></div>
-            <div style="font-size: 11px; margin-top: 10px; color: #94a3b8;" id="metrics-1">0A | 0W</div>
+            <div id="grid1"></div>
+            <div id="status1" class="status ok">СИСТЕМАТА Е OK</div>
+            <div style="font-size:12px; margin-top:10px; color:#94a3b8;" id="info1">0A | 0W</div>
         </div>
 
-        <div id="box-2" class="room">
-            <div class="room-title">
-                <span style="color:#f59e0b">🛋️ ДНЕВНА</span>
-                <span id="status-2" style="font-size:12px; color:#10b981">OK</span>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <select id="wire-2" onchange="update()">
-                    <option value="1.5" selected>Кабел 1.5mm² (13A)</option>
-                    <option value="2.5">Кабел 2.5mm² (20A)</option>
-                    <option value="4.0">Кабел 4.0mm² (28A)</option>
+        <div class="room" id="room2">
+            <div class="room-title">🛋️ ДНЕВНА</div>
+            <div style="margin-bottom:15px;">
+                <select id="wire2" onchange="update()">
+                    <option value="13" selected>Кабел 1.5mm² (13A) - 10€</option>
+                    <option value="20">Кабел 2.5mm² (20A) - 20€</option>
                 </select>
-                <select id="fuse-2" onchange="update()">
-                    <option value="10">Бушон 10A</option>
-                    <option value="16" selected>Бушон 16A</option>
-                    <option value="25">Бушон 25A</option>
+                <select id="fuse2" onchange="update()">
+                    <option value="10" selected>Бушон 10A - 5€</option>
+                    <option value="16">Бушон 16A - 5€</option>
                 </select>
             </div>
-            <div class="load-bar"><div id="bar-2" class="load-fill"></div></div>
-            <div id="grid-2" class="device-grid"></div>
-            <div style="font-size: 11px; margin-top: 10px; color: #94a3b8;" id="metrics-2">0A | 0W</div>
+            <div id="grid2"></div>
+            <div id="status2" class="status ok">СИСТЕМАТА Е OK</div>
+            <div style="font-size:12px; margin-top:10px; color:#94a3b8;" id="info2">0A | 0W</div>
         </div>
     </div>
 </div>
 
 <script>
-    const apps = [
-        { name: "Печка", icon: "🔥", p: 3000, price: 60, room: 1 },
-        { name: "Бойлер", icon: "🚿", p: 2500, price: 55, room: 1 },
-        { name: "Пералня", icon: "🧺", p: 2000, price: 40, room: 1 },
-        { name: "Хладилник", icon: "❄️", p: 300, price: 35, room: 1 },
-        { name: "ТВ", icon: "📺", p: 150, price: 20, room: 2 },
-        { name: "Компютър", icon: "🖥️", p: 400, price: 30, room: 2 },
-        { name: "Кана", icon: "🫖", p: 2000, price: 15, room: 1 },
-        { name: "Климатик", icon: "❄️", p: 1500, price: 50, room: 2 }
+    const items = [
+        { n: "Печка", i: "🔥", p: 3000, c: 60, r: 1 },
+        { n: "Бойлер", i: "🚿", p: 2500, c: 55, r: 1 },
+        { n: "Кана", i: "🫖", p: 2000, c: 15, r: 1 },
+        { n: "Хладилник", i: "❄️", p: 300, c: 35, r: 1 },
+        { n: "Климатик", i: "❄️", p: 1500, c: 50, r: 2 },
+        { n: "ТВ", i: "📺", p: 150, c: 20, r: 2 },
+        { n: "Компютър", i: "🖥️", p: 400, c: 30, r: 2 },
+        { n: "Лампа", i: "💡", p: 60, c: 5, r: 2 }
     ];
 
     let state = { 1: [], 2: [] };
 
-    function render() {
+    function start() {
         const cat = document.getElementById('catalog');
-        cat.innerHTML = '';
-        apps.forEach((a, i) => {
-            cat.innerHTML += `<div class="app-card" onclick="add(${i})">
-                <b>${a.icon} ${a.name}</b> <span style="float:right; color:#10b981">${a.price}€</span><br>
-                <small style="color:#94a3b8">${a.p}W</small>
-            </div>`;
+        items.forEach((item, index) => {
+            cat.innerHTML += `
+                <div class="card" onclick="add(${index})">
+                    <b>${item.i} ${item.n}</b><br>
+                    <small>${item.p}W | ${item.c}€</small>
+                </div>`;
         });
+        update();
     }
 
     function add(idx) {
-        const item = { ...apps[idx], uid: Date.now() };
-        state[item.room].push(item);
-        update();
-    }
-
-    function remove(r, uid) {
-        state[r] = state[r].filter(i => i.uid !== uid);
-        update();
-    }
-
-    function resetProject() {
-        if(confirm("Изчистване?")) { state = { 1: [], 2: [] }; update(); }
-    }
-
-    function update() {
-        let budget = 250;
-        [1, 2].forEach(n => {
-            const wire = parseFloat(document.getElementById('wire-'+n).value);
-            const fuse = parseInt(document.getElementById('fuse-'+n).value);
-            const grid = document.getElementById('grid-'+n);
-            const bar = document.getElementById('bar-'+n);
-            const status = document.getElementById('status-'+n);
-            const box = document.getElementById('box-'+n);
-
-            budget -= (wire === 1.5 ? 10 : (wire === 2.5 ? 20 : 40));
-            budget -= (fuse > 16 ? 10 : 5);
-
-            grid.innerHTML = '';
-            let pTotal = 0;
-            state[n].forEach(item => {
-                pTotal += item.p;
-                budget -= item.price;
-                grid.innerHTML += `<div class="device-icon" onclick="remove(${n}, ${item.uid})">
-                    <span style="font-size:20px">${item.icon}</span>
-                    <small style="font-size:9px; color:#94a3b8">${item.p}W</small>
-                </div>`;
-            });
-
-            const iTotal = pTotal / 220;
-            const limit = wire === 1.5 ? 13 : (wire === 2.5 ? 20 : 28);
-            const perc = Math.min((iTotal / fuse) * 100, 100);
-            
-            bar.style.width = perc + '%';
-            document.getElementById('metrics-'+n).innerText = `${iTotal.toFixed(1)}A | ${pTotal}W`;
-
-            box.classList.remove('on-fire');
-            if (iTotal > fuse) {
-                status.innerText = "🛑 ПАДНА БУШОН"; status.style.color = "#ef4444"; bar.style.background = "#ef4444";
-            } else if (iTotal > limit) {
-                status.innerText = "🔥 ПРЕТОВАРЕН КАБЕЛ"; status.style.color = "#ef4444"; box.classList.add('on-fire');
-            } else {
-                status.innerText = "✅ OK"; status.style.color = "#10b981"; bar.style.background = (perc > 80 ? "#f59e0b" : "#10b981");
-            }
-        });
-        document.getElementById('budget').innerText = budget;
-        document.getElementById('budget').parentElement.style.color = budget < 0 ? "#ef4444" : "#10b981";
-    }
-
-    window.onload = () => { render(); update(); };
-</script>
-</body>
-</html>
+        const selected = {...items[idx],
