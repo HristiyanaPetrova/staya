@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>STEM Инженер: 3D Умна Стая + Схема</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #fdf6e3; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; overflow-x: hidden; }
+        h1 { color: #b58900; }
+        
+        /* Ефект "Късо съединение" */
+        .blackout { animation: flash 0.2s 3; background: #000 !important; }
+        @keyframes flash { 50% { background: #fff; } }
+
+        .container { display: flex; gap: 30px; max-width: 1400px; width: 100%; }
+        
+        #room-container {
+            width: 700px; height: 500px; background: #eee8d5; border: 4px solid #93a1a1;
+            position: relative; border-radius: 12px; perspective: 1000px; transition: filter 0.5s;
+        }
+
+        #room-canvas {
+            width: 100%; height: 100%; position: absolute; top: 50px; left: 50px;
+            transform: rotateX(60deg) rotateZ(-45deg);
+            background-image: linear-gradient(#f9f5d7 1px, transparent 1px), linear-gradient(90px, #f9f5d7 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .controls { flex: 1; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        .device-card {
+            background: #fdf6e3; margin-bottom: 8px; padding: 10px; border-radius: 8px;
+            cursor: pointer; display: flex; align-items: center; border-left: 5px solid #268bd2;
+        }
+
+        .dashboard {
+            width: 100%; max-width: 1400px; display: flex; justify-content: space-around;
+            background: #073642; color: white; padding: 20px; margin-top: 20px; border-radius: 12px;
+        }
+
+        .stat span { font-size: 28px; font-weight: bold; display: block; color: #b58900; }
+
+        .app-object { position: absolute; cursor: move; text-align: center; z-index: 10; }
+        .obj-icon { font-size: 40px; }
+        .obj-label { background: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 4px; font-size: 10px; }
+
+        .danger-ui { color: #dc322f !important; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
+        #reset-btn { background: #dc322f; color: white; }
+        #download-btn { background: #859900; color: white; }
+    </style>
+</head>
+<body id="main-body">
+
+    <h1>⚡ STEM Инженер: 3D Умна Стая</h1>
+    
+    <div class="container">
+        <div id="room-container">
+            <div id="room-canvas"></div>
+            <div id="explosion" style="display:none; position:absolute; top:40%; left:45%; font-size:100px; z-index:100;">💥</div>
+        </div>
+
+        <div class="controls">
+            <h3>Добави компоненти:</h3>
+            <div class="device-card" style="border-color: #d33682;" onclick="addObject('🛏️', 'Легло', 0)">🛏️ Легло (Декор)</div>
+            <div class="device-card" onclick="addObject('🖥️', 'Компютър', 400)">🖥️ Компютър (400W)</div>
+            <div class="device-card" onclick="addObject('❄️', 'Климатик', 2500)">❄️ Климатик (2500W)</div>
+            <div class="device-card" onclick="addObject('🔥', 'Печка', 3000)">🔥 Печка (3000W)</div>
+            <div class="device-card" onclick="addObject('☕', 'Кана за вода', 2000)">☕ Кана (2000W)</div>
+
+            <div class="btn-group">
+                <button id="reset-btn" onclick="resetRoom()">Рестарт</button>
+                <button id="download-btn" onclick="downloadSchema()">Изтегли Схема</button>
+            </div>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">* Кликни с десен бутон върху предмет, за да го премахнеш.</p>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="stat"><span id="total-p">0 W</span><label>Мощност</label></div>
+        <div class="stat"><span id="total-i">0.00 A</span><label>Ток (I)</label></div>
+        <div class="stat"><span>220 V</span><label>Напрежение (U)</label></div>
+        <div class="stat"><span>16 A</span><label>Бушон</label></div>
+    </div>
+
+    <script>
+        let devices = [];
+        const voltage = 220;
+        const limit = 16;
+
+        function addObject(icon, name, power) {
+            const current = power / voltage;
+            const resistance = power > 0 ? (voltage / current).toFixed(1) : "∞";
+            
+            devices.push({ name, power, current, resistance });
+            
+            const div = document.createElement('div');
+            div.className = 'app-object';
+            div.style.left = '100px'; div.style.top = '100px';
+            div.innerHTML = `<span class="obj-icon">${icon}</span><div class="obj-label">${name}</div>`;
+            
+            // Drag and Drop
+            div.onmousedown = function(e) {
+                let rect = document.getElementById('room-canvas').getBoundingClientRect();
+                document.onmousemove = (e) => {
+                    div.style.left = e.clientX - rect.left - 20 + 'px';
+                    div.style.top = e.clientY - rect.top - 20 + 'px';
+                };
+                document.onmouseup = () => document.onmousemove = null;
+            };
+
+            // Премахване
+            div.oncontextmenu = (e) => {
+                e.preventDefault();
+                devices = devices.filter(d => d.name !== name || d.power !== power);
+                div.remove();
+                updatePhysics();
+            };
+
+            document.getElementById('room-canvas').appendChild(div);
+            updatePhysics();
+        }
+
+        function updatePhysics() {
+            let totalP = devices.reduce((sum, d) => sum + d.power, 0);
+            let totalI = totalP / voltage;
+
+            document.getElementById('total-p').innerText = totalP + " W";
+            document.getElementById('total-i').innerText = totalI.toFixed(2) + " A";
+
+            if (totalI > limit) {
+                document.getElementById('total-i').classList.add('danger-ui');
+                triggerBlackout();
+            } else {
+                document.getElementById('total-i').classList.remove('danger-ui');
+                document.getElementById('room-container').style.filter = "none";
+                document.getElementById('explosion').style.display = "none";
+            }
+        }
+
+        function triggerBlackout() {
+            document.getElementById('main-body').classList.add('blackout');
+            setTimeout(() => {
+                document.getElementById('main-body').classList.remove('blackout');
+                document.getElementById('room-container').style.filter = "grayscale(1) brightness(0.5)";
+                document.getElementById('explosion').style.display = "block";
+            }, 600);
+        }
+
+        function downloadSchema() {
+            let content = "--- ЕЛЕКТРИЧЕСКА СХЕМА НА ОБЕКТА ---\n\n";
+            content += `Работно напрежение: ${voltage}V\n`;
+            content += `Максимален ток на предпазителя: ${limit}A\n`;
+            content += "-------------------------------------------\n";
+            
+            devices.forEach((d, i) => {
+                content += `${i+1}. ${d.name}: P=${d.power}W, I=${d.current.toFixed(2)}A, R=${d.resistance}Ω\n`;
+            });
+
+            let totalP = devices.reduce((sum, d) => sum + d.power, 0);
+            let totalI = totalP / voltage;
+
+            content += "-------------------------------------------\n";
+            content += `ОБЩА МОЩНОСТ: ${totalP} W\n`;
+            content += `ОБЩ ТОК: ${totalI.toFixed(2)} A\n`;
+            content += totalI > limit ? "СТАТУС: ПРЕТОВАРЕНО (ИЗГОРЯЛ ПРЕДПАЗИТЕЛ)" : "СТАТУС: БЕЗОПАСНО";
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'schema_staya.txt';
+            a.click();
+        }
+
+        function resetRoom() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
