@@ -2,207 +2,209 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Инженер 2.4: Интелигентна мрежа</title>
+    <title>STEM Лаборатория: Енергиен Мениджър</title>
     <style>
-        :root { --bg: #f8fafc; --panel: #ffffff; --accent: #2563eb; --text: #0f172a; }
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        :root { --bg: #f4f7f6; --dark: #2c3e50; --accent: #3498db; --danger: #e74c3c; --success: #2ecc71; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--dark); }
         
-        .layout { display: flex; gap: 15px; flex: 1; min-height: 0; }
-        #viewport { flex: 3; background: #cbd5e1; border-radius: 15px; position: relative; overflow: hidden; border: 3px solid #94a3b8; transition: background 0.3s; }
-        .blackout { filter: brightness(0.3) grayscale(0.7); }
-
-        .sidebar { width: 320px; background: var(--panel); padding: 15px; border-radius: 15px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .item-btn { width: 100%; padding: 10px; margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; cursor: pointer; display: flex; align-items: center; font-size: 13px; }
-        .item-btn:hover { border-color: var(--accent); background: #f1f5f9; }
-        .item-btn b { font-size: 22px; margin-right: 10px; }
-
-        .placed-obj { position: absolute; cursor: grab; z-index: 20; text-align: center; width: 100px; }
-        .icon-container { font-size: 45px; transition: all 0.3s; position: relative; }
-        .active-glow { filter: drop-shadow(0 0 15px #fbbf24); transform: scale(1.05); }
+        .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
         
-        .switch-btn { margin-top: 5px; padding: 2px 8px; font-size: 10px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; background: #94a3b8; color: white; }
-        .switch-btn.on { background: #10b981; }
+        /* Списък с уреди */
+        .appliance-list { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: 85vh; overflow-y: auto; }
+        .appliance-card { 
+            border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; 
+            cursor: pointer; transition: 0.3s; position: relative;
+        }
+        .appliance-card:hover { border-color: var(--accent); background: #f0f7ff; }
+        .appliance-card h4 { margin: 0 0 10px 0; display: flex; align-items: center; gap: 10px; }
+        .info-row { font-size: 12px; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 
-        .tag { background: var(--text); color: #fff; padding: 2px 4px; border-radius: 4px; font-size: 10px; margin-top: 2px; }
+        /* Електрическо табло */
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .circuit { 
+            background: white; border-radius: 15px; padding: 20px; min-height: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 8px solid var(--accent);
+            position: relative;
+        }
+        .circuit.overloaded { border-top-color: var(--danger); background: #fff5f5; }
+        
+        .fuse-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .fuse-status { font-weight: bold; padding: 5px 10px; border-radius: 5px; font-size: 14px; }
+        
+        .active-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .placed-item { 
+            background: var(--dark); color: white; padding: 10px; border-radius: 8px; 
+            text-align: center; position: relative; font-size: 12px; animation: popIn 0.3s;
+        }
+        .remove-btn { position: absolute; top: -5px; right: -5px; background: var(--danger); border: none; border-radius: 50%; color: white; width: 20px; height: 20px; cursor: pointer; }
 
-        #cable-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        .hud { background: #0f172a; color: #fff; padding: 15px; border-radius: 15px; display: flex; justify-content: space-around; margin-top: 10px; }
-        .hud-item b { color: #fbbf24; font-size: 24px; display: block; }
+        .physics-panel { 
+            grid-column: 1 / -1; background: var(--dark); color: white; padding: 20px; 
+            border-radius: 15px; display: flex; justify-content: space-around; align-items: center;
+        }
+        .stat-box { text-align: center; }
+        .stat-box big { display: block; font-size: 30px; color: #f1c40f; font-weight: bold; }
 
-        #burn-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; display: none; z-index: 100; pointer-events: none; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-    <div style="display:flex; justify-content: space-between; align-items: center; padding: 5px 15px;">
-        <h3 style="margin:0;">⚡ STEM Инженер: Умна Къща</h3>
-        <span style="font-size:12px; color:#64748b;">Влачи с ляв бутон | Изтрий с десен бутон</span>
+<h2 style="text-align:center;">🏠 Инженерна Симулация: Разпределение на Товар</h2>
+
+<div class="main-grid">
+    <div class="appliance-list">
+        <h3>🛒 Избор на уреди</h3>
+        <p style="font-size: 12px; color: #666;">Кликни, за да добавиш към мрежата</p>
+        
+        <div id="catalog"></div>
     </div>
 
-    <div class="layout">
-        <div id="viewport">
-            <div id="burn-indicator">💥🔥💨</div>
-            <svg id="cable-layer"></svg>
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="dashboard">
+            <div id="circuit1" class="circuit" ondragover="event.preventDefault()" ondrop="drop(event, 1)">
+                <div class="fuse-box">
+                    <span>🔌 КРЪГ А: Кухня</span>
+                    <span id="fuse1-label" class="fuse-status" style="background: var(--success); color: white;">OK</span>
+                </div>
+                <div id="apps1" class="active-apps"></div>
+                <div style="margin-top:20px; font-size:13px; color:#555;">
+                    Ток: <b id="c1-i">0.00</b> A | Мощност: <b id="c1-p">0</b> W
+                </div>
+            </div>
+
+            <div id="circuit2" class="circuit" ondragover="event.preventDefault()" ondrop="drop(event, 2)">
+                <div class="fuse-box">
+                    <span>🔌 КРЪГ Б: Стаи</span>
+                    <span id="fuse2-label" class="fuse-status" style="background: var(--success); color: white;">OK</span>
+                </div>
+                <div id="apps2" class="active-apps"></div>
+                <div style="margin-top:20px; font-size:13px; color:#555;">
+                    Ток: <b id="c2-i">0.00</b> A | Мощност: <b id="c2-p">0</b> W
+                </div>
+            </div>
         </div>
 
-        <div class="sidebar">
-            <button id="wire-btn" onclick="toggleWireMode()" style="width:100%; padding:15px; background:var(--accent); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-bottom:15px;">🔌 СВЪРЖИ КАБЕЛ</button>
-            
-            <p style="font-size:11px; font-weight:bold; color: #64748b;">МРЕЖА:</p>
-            <button class="item-btn" onclick="spawn('🔲', 'Контакт', 0)"><b>🔲</b> Контакт (220V)</button>
-            
-            <p style="font-size:11px; font-weight:bold; color: #64748b;">УРЕДИ:</p>
-            <button class="item-btn" onclick="spawn('🛁', 'Бойлер', 3000)"><b>🛁</b> Бойлер (3000W)</button>
-            <button class="item-btn" onclick="spawn('🔥', 'Печка', 2200)"><b>🔥</b> Печка (2200W)</button>
-            <button class="item-btn" onclick="spawn('❄️', 'Хладилник', 800)"><b>❄️</b> Хладилник (800W)</button>
-            <button class="item-btn" onclick="spawn('💨', 'Сешоар', 1500)"><b>💨</b> Сешоар (1500W)</button>
-            <button class="item-btn" onclick="spawn('📺', 'Телевизор', 200)"><b>📺</b> Телевизор (200W)</button>
-            <button class="item-btn" onclick="spawn('💡', 'Лампа', 60)"><b>💡</b> Лампа (60W)</button>
-            <button class="item-btn" onclick="spawn('🧶', 'Ютия', 1800)"><b>🧶</b> Ютия (1800W)</button>
-            
-            <button onclick="location.reload()" style="margin-top:10px; width:100%; padding:8px; border:1px dashed #ccc; background:none; cursor:pointer; font-size:11px;">НУЛИРАЙ</button>
+        <div class="physics-panel">
+            <div class="stat-box">
+                <label>ОБЩ ТОК</label>
+                <big id="total-i">0.00 A</big>
+            </div>
+            <div class="stat-box">
+                <label>ОБЩА МОЩНОСТ</label>
+                <big id="total-p">0 W</big>
+            </div>
+            <div class="stat-box">
+                <label>НАПРЕЖЕНИЕ</label>
+                <big>220 V</big>
+            </div>
+            <div style="max-width: 300px; font-size: 13px; border-left: 1px solid #555; padding-left: 20px;">
+                <b>Закони:</b><br>
+                $P = U \cdot I$<br>
+                $I = P / U$<br>
+                $R = U / I$
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="hud">
-        <div class="hud-item"><label>АКТИВНА МОЩНОСТ</label><b id="p-val">0 W</b></div>
-        <div class="hud-item"><label>ТОК ВЪВ ВЕРИГАТА</label><b id="i-val">0.00 A</b></div>
-        <div class="hud-item"><label>НАПРЕЖЕНИЕ</label><b>220 V</b></div>
-        <div class="hud-item"><label>ПРЕДПАЗИТЕЛ</label><b>16 A</b></div>
-    </div>
+<script>
+    const U = 220;
+    const FUSE_LIMIT = 16; // Ампера на предпазител
 
-    <script>
-        let wireMode = false, firstClick = null;
-        let components = [], connections = [];
+    const appliances = [
+        { name: "Готварска печка", icon: "🔥", p: 3000 },
+        { name: "Бойлер", icon: "🛁", p: 2500 },
+        { name: "Пералня", icon: "🧺", p: 2000 },
+        { name: "Микровълнова", icon: "🍱", p: 1200 },
+        { name: "Ютия", icon: "🧶", p: 1800 },
+        { name: "Компютър", icon: "🖥️", p: 400 },
+        { name: "Хладилник", icon: "❄️", p: 600 },
+        { name: "Телевизор", icon: "📺", p: 150 },
+        { name: "Кафемашина", icon: "☕", p: 1000 },
+        { name: "Ел. кана", icon: "🫖", p: 2200 }
+    ];
 
-        function spawn(icon, name, power) {
-            const id = 'id' + Date.now();
-            const div = document.createElement('div');
-            div.className = 'placed-obj';
-            div.id = id;
-            div.style.left = '20%'; div.style.top = '20%';
+    let state = { c1: [], c2: [] };
+
+    function init() {
+        const catalog = document.getElementById('catalog');
+        appliances.forEach((app, index) => {
+            const current = (app.p / U).toFixed(2);
+            const resistance = (U / current).toFixed(1);
             
-            let switchHtml = power > 0 ? `<button class="switch-btn" onclick="toggleDevice('${id}')">OFF</button>` : '';
-            div.innerHTML = `<div class="icon-container" id="icon-${id}">${icon}</div><div class="tag">${name}</div>${switchHtml}`;
+            catalog.innerHTML += `
+                <div class="appliance-card">
+                    <h4>${app.icon} ${app.name}</h4>
+                    <div class="info-row">
+                        <span>P: <b>${app.p}W</b></span>
+                        <span>U: <b>220V</b></span>
+                        <span>I: <b>${current}A</b></span>
+                        <span>R: <b>${resistance}Ω</b></span>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button onclick="addToCircuit(${index}, 1)" style="font-size:11px; cursor:pointer;">+ Кръг А</button>
+                        <button onclick="addToCircuit(${index}, 2)" style="font-size:11px; cursor:pointer;">+ Кръг Б</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function addToCircuit(appIndex, circuitNum) {
+        const app = { ...appliances[appIndex], instanceId: Date.now() };
+        state['c' + circuitNum].push(app);
+        updateUI();
+    }
+
+    function removeApp(instanceId, circuitNum) {
+        state['c' + circuitNum] = state['c' + circuitNum].filter(a => a.instanceId !== instanceId);
+        updateUI();
+    }
+
+    function updateUI() {
+        [1, 2].forEach(num => {
+            const container = document.getElementById('apps' + num);
+            const list = state['c' + num];
+            container.innerHTML = '';
             
-            div.onmousedown = (e) => {
-                if (e.button === 2) { deleteObject(id); return; }
-                if (wireMode) { handleWire(id); return; }
-                
-                const rectVP = document.getElementById('viewport').getBoundingClientRect();
-                const shiftX = e.clientX - div.getBoundingClientRect().left;
-                const shiftY = e.clientY - div.getBoundingClientRect().top;
-
-                document.onmousemove = (e) => {
-                    div.style.left = (e.clientX - rectVP.left - shiftX) + 'px';
-                    div.style.top = (e.clientY - rectVP.top - shiftY) + 'px';
-                    drawWires();
-                };
-                document.onmouseup = () => document.onmousemove = null;
-            };
-
-            document.getElementById('viewport').appendChild(div);
-            components.push({ id, name, power, type: power > 0 ? 'load' : 'source', active: false });
-        }
-
-        function toggleDevice(id) {
-            const comp = components.find(c => c.id === id);
-            if (!comp) return;
-            
-            comp.active = !comp.active;
-            const btn = document.querySelector(`#${id} .switch-btn`);
-            const icon = document.querySelector(`#icon-${id}`);
-            
-            if (comp.active) {
-                btn.innerText = "ON"; btn.classList.add('on'); icon.classList.add('active-glow');
-            } else {
-                btn.innerText = "OFF"; btn.classList.remove('on'); icon.classList.remove('active-glow');
-            }
-            updatePhysics();
-            drawWires();
-        }
-
-        function deleteObject(id) {
-            connections = connections.filter(c => c[0] !== id && c[1] !== id);
-            components = components.filter(c => c.id !== id);
-            const el = document.getElementById(id);
-            if(el) el.remove();
-            drawWires();
-            updatePhysics();
-        }
-
-        function handleWire(id) {
-            if(!firstClick) {
-                firstClick = id;
-                document.getElementById(id).style.outline = "2px solid #2563eb";
-            } else {
-                if(firstClick !== id) {
-                    connections.push([firstClick, id]);
-                    drawWires();
-                    updatePhysics();
-                }
-                document.getElementById(firstClick).style.outline = "none";
-                firstClick = null;
-            }
-        }
-
-        function drawWires() {
-            const svg = document.getElementById('cable-layer');
-            svg.innerHTML = '';
-            connections.forEach(conn => {
-                const el1 = document.getElementById(conn[0]);
-                const el2 = document.getElementById(conn[1]);
-                const c1 = components.find(c => c.id === conn[0]);
-                const c2 = components.find(c => c.id === conn[1]);
-                
-                if(el1 && el2) {
-                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                    line.setAttribute("x1", parseInt(el1.style.left) + 50);
-                    line.setAttribute("y1", parseInt(el1.style.top) + 25);
-                    line.setAttribute("x2", parseInt(el2.style.left) + 50);
-                    line.setAttribute("y2", parseInt(el2.style.top) + 25);
-                    
-                    // Цвят на кабела - жълт ако тече ток
-                    const isPowered = (c1.active && c2.type === 'source') || (c2.active && c1.type === 'source');
-                    line.setAttribute("stroke", isPowered ? "#fbbf24" : "#475569");
-                    line.setAttribute("stroke-width", isPowered ? "5" : "3");
-                    svg.appendChild(line);
-                }
-            });
-        }
-
-        function updatePhysics() {
-            let activePower = 0;
-            connections.forEach(conn => {
-                const c1 = components.find(c => c.id === conn[0]);
-                const c2 = components.find(c => c.id === conn[1]);
-                if(c1 && c2) {
-                    if(c1.type === 'load' && c1.active && c2.type === 'source') activePower += c1.power;
-                    if(c2.type === 'load' && c2.active && c1.type === 'source') activePower += c2.power;
-                }
+            let pTotal = 0;
+            list.forEach(app => {
+                pTotal += app.p;
+                container.innerHTML += `
+                    <div class="placed-item">
+                        <button class="remove-btn" onclick="removeApp(${app.instanceId}, ${num})">×</button>
+                        <div style="font-size:20px;">${app.icon}</div>
+                        <div>${app.name}</div>
+                    </div>
+                `;
             });
 
-            document.getElementById('p-val').innerText = activePower + " W";
-            const current = activePower / 220;
-            document.getElementById('i-val').innerText = current.toFixed(2) + " A";
+            const iTotal = pTotal / U;
+            document.getElementById(`c${num}-p`).innerText = pTotal;
+            document.getElementById(`c${num}-i`).innerText = iTotal.toFixed(2);
             
-            const vp = document.getElementById('viewport');
-            const burn = document.getElementById('burn-indicator');
-
-            if(current > 16) {
-                vp.classList.add('blackout'); burn.style.display = "block";
-                document.getElementById('i-val').style.color = '#ef4444';
+            const label = document.getElementById(`fuse${num}-label`);
+            const circuitDiv = document.getElementById(`circuit${num}`);
+            
+            if (iTotal > FUSE_LIMIT) {
+                label.innerText = "ИЗГОРЯЛ!";
+                label.style.background = "var(--danger)";
+                circuitDiv.classList.add('overloaded');
             } else {
-                vp.classList.remove('blackout'); burn.style.display = "none";
-                document.getElementById('i-val').style.color = '#fbbf24';
+                label.innerText = "OK";
+                label.style.background = "var(--success)";
+                circuitDiv.classList.remove('overloaded');
             }
-        }
+        });
 
-        function toggleWireMode() {
-            wireMode = !wireMode;
-            document.getElementById('wire-btn').style.background = wireMode ? "#10b981" : "#2563eb";
-        }
-    </script>
+        const totalP = state.c1.reduce((s, a) => s + a.p, 0) + state.c2.reduce((s, a) => s + a.p, 0);
+        document.getElementById('total-p').innerText = totalP + " W";
+        document.getElementById('total-i').innerText = (totalP / U).toFixed(2) + " A";
+    }
+
+    init();
+</script>
+
 </body>
 </html>
