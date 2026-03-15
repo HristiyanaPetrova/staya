@@ -2,110 +2,245 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <title>STEM Архитект: Pro Edition</title>
-    <script>
-        let placedDevices = { 1: [], 2: [] };
-        let draggedData = null;
-
-        function allowDrop(ev) { ev.preventDefault(); }
-        function drag(ev, icon, power, price, name) { draggedData = { icon, power, price, name }; }
-
-        function drop(ev, roomNum) {
-            ev.preventDefault();
-            const rect = ev.currentTarget.getBoundingClientRect();
-            const x = ev.clientX - rect.left - 25;
-            const y = ev.clientY - rect.top - 25;
-            placedDevices[roomNum].push({ ...draggedData, id: Date.now(), x, y });
-            renderRoom(roomNum);
-            calc();
-        }
-
-        function renderRoom(num) {
-            const roomEl = document.getElementById('room-' + num);
-            roomEl.querySelectorAll('.placed-item').forEach(el => el.remove());
-            placedDevices[num].forEach(dev => {
-                const div = document.createElement('div');
-                div.className = 'placed-item';
-                div.style.left = dev.x + 'px'; div.style.top = dev.y + 'px';
-                div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(${num}, ${dev.id})">×</div>`;
-                div.onmousedown = (e) => startMove(e, dev, num);
-                roomEl.appendChild(div);
-            });
-        }
-
-        function removeItem(num, id) {
-            placedDevices[num] = placedDevices[num].filter(d => d.id !== id);
-            renderRoom(num); calc();
-        }
-
-        function calc() {
-            let budget = 250;
-            let summaryHtml = "";
-            for (let r = 1; r <= 2; r++) {
-                const wire = parseInt(document.getElementById('w-' + r).value);
-                const fuse = parseInt(document.getElementById('f-' + r).value);
-                const statusEl = document.getElementById('status-' + r);
-                const warnEl = document.getElementById('warn-' + r);
-                const roomEl = document.getElementById('room-' + r);
-                budget -= (wire === 13 ? 10 : 20); budget -= 5;
-                let totalW = 0;
-                let roomDevices = [];
-                placedDevices[r].forEach(d => { 
-                    totalW += d.power; budget -= d.price;
-                    roomDevices.push(`${d.name} (${d.power}W)`);
-                });
-                const amps = totalW / 220;
-                statusEl.innerText = `${amps.toFixed(1)}A | ${totalW}W`;
-                if (amps > fuse || amps > wire) {
-                    roomEl.classList.add('danger'); warnEl.style.display = 'block';
-                } else {
-                    roomEl.classList.remove('danger'); warnEl.style.display = 'none';
-                }
-                summaryHtml += `<tr><td>${r===1?'Кухня':'Дневна'}</td><td>${roomDevices.join(', ') || 'Няма'}</td><td>${totalW} W</td><td>${amps.toFixed(1)} A</td></tr>`;
-            }
-            document.getElementById('budget').innerText = budget;
-            document.getElementById('print-table-body').innerHTML = summaryHtml;
-            document.getElementById('print-budget').innerText = budget;
-            document.getElementById('print-name').innerText = document.getElementById('studentName').value || "---";
-        }
-
-        function startMove(e, dev, num) {
-            if (e.target.className === 'remove-btn') return;
-            const rect = document.getElementById('room-' + num).getBoundingClientRect();
-            document.onmousemove = (m) => {
-                dev.x = m.clientX - rect.left - 25; dev.y = m.clientY - rect.top - 25;
-                renderRoom(num);
-            };
-            document.onmouseup = () => { document.onmousemove = null; calc(); };
-        }
-    </script>
+    <title>STEM Архитект: Стабилна Версия</title>
     <style>
-        /* Анимиран фон */
+        /* Модерен, но лек интерфейс */
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #1e1b4b);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #0f172a; 
+            color: white; 
+            margin: 0; padding: 10px; 
+            display: flex; flex-direction: column; 
+            height: 100vh; overflow: hidden; 
         }
-
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         .header { 
-            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
-            padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); 
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: #1e293b; padding: 10px 15px; 
+            border-radius: 10px; display: flex; 
+            justify-content: space-between; align-items: center; 
+            margin-bottom: 10px; border: 1px solid #334155;
         }
 
-        .main-layout { display: flex; gap: 15px; flex: 1; min-height: 0; }
+        .main-layout { display: flex; gap: 10px; flex: 1; min-height: 0; }
 
-        /* Странична лента с ефекти */
         .sidebar { 
-            width: 240px; background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 15px; 
-            overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); 
+            width: 220px; background: #1e293b; padding: 10px; 
+            border-radius: 10px; overflow-y: auto; border: 1px solid #334155;
         }
+
         .source-item { 
-            background: #334155; padding: 10px; border-radius: 8px; margin-bottom: 8px; 
-            cursor: grab; font-size: 13px; border: 1px solid transparent;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #334155; padding: 10px; border-radius: 6px; 
+            margin-bottom: 8px; cursor: grab; font-size: 13px; 
+            border: 1px solid #475569; transition: 0.2s;
+        }
+        .source-item:hover { background: #3b82f6; border-color: #60a5fa; }
+
+        .rooms-container { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+        .room { 
+            background: #1e293b; border: 2px solid #334155; 
+            border-radius: 12px; position: relative; flex: 1; 
+            background-image: radial-gradient(#2d3748 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .room-label { 
+            position: absolute; top: 10px; left: 15px; 
+            font-weight: bold; color: #60a5fa; font-size: 14px;
+        }
+
+        .placed-item { 
+            position: absolute; width: 50px; height: 50px; 
+            background: #0f172a; border: 2px solid #3b82f6; 
+            border-radius: 10px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; font-size: 20px;
+        }
+        .placed-item small { font-size: 8px; color: #94a3b8; }
+
+        .remove-btn { 
+            position: absolute; top: -8px; right: -8px; 
+            background: #ef4444; color: white; border-radius: 50%; 
+            width: 18px; height: 18px; font-size: 10px; 
+            cursor: pointer; text-align: center; line-height: 18px;
+        }
+
+        .overload-msg { 
+            position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); background: #ef4444; 
+            color: white; padding: 10px 20px; border-radius: 20px; 
+            font-weight: bold; display: none; z-index: 100;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .status-info { position: absolute; bottom: 8px; right: 15px; font-size: 12px; font-weight: bold; color: #10b981; }
+        .danger { border-color: #ef4444 !important; }
+
+        input, select, button { 
+            background: #0f172a; color: white; border: 1px solid #475569; 
+            padding: 6px; border-radius: 5px; font-size: 13px;
+        }
+        button { cursor: pointer; background: #3b82f6; border: none; padding: 8px 15px; }
+        button:hover { background: #2563eb; }
+
+        /* Секция за печат */
+        #print-section { display: none; color: black; padding: 20px; font-family: sans-serif; }
+        #print-section table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        #print-section th, #print-section td { border: 1px solid #000; padding: 8px; text-align: left; }
+
+        @media print {
+            body * { display: none !important; }
+            #print-section, #print-section * { display: block !important; }
+            #print-section table { display: table !important; }
+            #print-section tr, #print-section td, #print-section th { display: table-cell !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <input type="text" id="studentName" placeholder="Име на ученика..." oninput="updatePrintName()">
+        <span style="margin-left:20px;">💰 Бюджет: <b id="budget" style="color:#10b981;">250</b>€</span>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <button onclick="window.print()">🖨️ ПЕЧАТ НА РЕЗЮМЕ</button>
+        <button onclick="location.reload()" style="background:#475569;">🔄 НУЛИРАЙ</button>
+    </div>
+</div>
+
+<div class="main-layout">
+    <div class="sidebar">
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🔥', 3000, 60, 'Печка')">🔥 Печка (3kW)</div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🚿', 2500, 55, 'Бойлер')">🚿 Бойлер (2.5)</div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🫖', 2000, 15, 'Кана')">🫖 Кана (2kW)</div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 300, 35, 'Хладилник')">❄️ Хладилник</div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '🖥️', 450, 30, 'Компютър')">🖥️ Компютър</div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '❄️', 1500, 50, 'Климатик')">❄️ Климатик</div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '📺', 150, 20, 'Телевизор')">📺 Телевизор</div>
+        <div class="source-item" draggable="true" ondragstart="drag(event, '💡', 60, 5, 'Лампа')">💡 Лампа</div>
+    </div>
+
+    <div class="rooms-container">
+        <div id="room-1" class="room" ondrop="drop(event, 1)" ondragover="allowDrop(event)">
+            <div class="room-label">🥘 КУХНЯ</div>
+            <div id="warn-1" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
+            <div style="position:absolute; top:10px; right:15px;">
+                <select id="w-1" onchange="calc()"><option value="13">1.5mm²</option><option value="20" selected>2.5mm²</option></select>
+                <select id="f-1" onchange="calc()"><option value="10">10A</option><option value="16" selected>16A</option></select>
+            </div>
+            <div class="status-info" id="status-1">0A | 0W</div>
+        </div>
+
+        <div id="room-2" class="room" ondrop="drop(event, 2)" ondragover="allowDrop(event)">
+            <div class="room-label">🛋️ ДНЕВНА</div>
+            <div id="warn-2" class="overload-msg">⚠️ ПРЕТОВАРЕНО!</div>
+            <div style="position:absolute; top:10px; right:15px;">
+                <select id="w-2" onchange="calc()"><option value="13" selected>1.5mm²</option><option value="20">2.5mm²</option></select>
+                <select id="f-2" onchange="calc()"><option value="10" selected>10A</option><option value="16">16A</option></select>
+            </div>
+            <div class="status-info" id="status-2">0A | 0W</div>
+        </div>
+    </div>
+</div>
+
+<div id="print-section">
+    <h2>STEM Отчет: Електрически Проект</h2>
+    <p><strong>Проектант:</strong> <span id="print-name-field">---</span></p>
+    <table>
+        <thead>
+            <tr><th>Стая</th><th>Уреди</th><th>Мощност (W)</th><th>Ток (A)</th></tr>
+        </thead>
+        <tbody id="print-table-body"></tbody>
+    </table>
+    <p><strong>Оставащ бюджет:</strong> <span id="print-budget-field">250</span> €</p>
+</div>
+
+<script>
+    let placedDevices = { 1: [], 2: [] };
+    let draggedData = null;
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    
+    function drag(ev, icon, power, price, name) { 
+        draggedData = { icon, power, price, name }; 
+    }
+
+    function drop(ev, roomNum) {
+        ev.preventDefault();
+        const rect = ev.currentTarget.getBoundingClientRect();
+        const x = ev.clientX - rect.left - 25;
+        const y = ev.clientY - rect.top - 25;
+        placedDevices[roomNum].push({ ...draggedData, id: Date.now(), x, y });
+        renderRoom(roomNum);
+        calc();
+    }
+
+    function renderRoom(num) {
+        const roomEl = document.getElementById('room-' + num);
+        roomEl.querySelectorAll('.placed-item').forEach(el => el.remove());
+        placedDevices[num].forEach(dev => {
+            const div = document.createElement('div');
+            div.className = 'placed-item';
+            div.style.left = dev.x + 'px'; div.style.top = dev.y + 'px';
+            div.innerHTML = `${dev.icon}<small>${dev.power}W</small><div class="remove-btn" onclick="removeItem(${num}, ${dev.id})">×</div>`;
+            div.onmousedown = (e) => startMove(e, dev, num);
+            roomEl.appendChild(div);
+        });
+    }
+
+    function removeItem(num, id) {
+        placedDevices[num] = placedDevices[num].filter(d => d.id !== id);
+        renderRoom(num); 
+        calc();
+    }
+
+    function calc() {
+        let budget = 250;
+        let tableRows = "";
+        for (let r = 1; r <= 2; r++) {
+            const wire = parseInt(document.getElementById('w-' + r).value);
+            const fuse = parseInt(document.getElementById('f-' + r).value);
+            const statusEl = document.getElementById('status-' + r);
+            const warnEl = document.getElementById('warn-' + r);
+            const roomEl = document.getElementById('room-' + r);
+
+            budget -= (wire === 13 ? 10 : 20); 
+            budget -= 5; // Цена за бушон
+
+            let totalW = 0;
+            let names = [];
+            placedDevices[r].forEach(d => { 
+                totalW += d.power; 
+                budget -= d.price;
+                names.push(d.name);
+            });
+
+            const amps = totalW / 220;
+            statusEl.innerText = `${amps.toFixed(1)}A | ${totalW}W`;
+
+            if (amps > fuse || amps > wire) {
+                roomEl.classList.add('danger');
+                warnEl.style.display = 'block';
+                statusEl.style.color = "#ef4444";
+            } else {
+                roomEl.classList.remove('danger');
+                warnEl.style.display = 'none';
+                statusEl.style.color = "#10b981";
+            }
+            tableRows += `<tr><td>${r===1?'Кухня':'Дневна'}</td><td>${names.join(', ') || '-'}</td><td>${totalW}</td><td>${amps.toFixed(1)}</td></tr>`;
+        }
+        document.getElementById('budget').innerText = budget;
+        document.getElementById('print-table-body').innerHTML = tableRows;
+        document.getElementById('print-budget-field').innerText = budget;
+    }
+
+    function updatePrintName() {
+        document.getElementById('print-name-field').innerText = document.getElementById('studentName').value || "---";
+    }
+
+    function startMove(e, dev, num) {
+        if (e.target.className === 'remove-btn') return;
+        const roomEl = document.getElementById('room-' + num);
+        const rect = roomEl.getBoundingClientRect();
+        document.onmousemove = (m) => {
+            dev.x = m.clientX - rect.left - 25;
